@@ -3,7 +3,7 @@
 
 	let audioElement: HTMLAudioElement;
 	let fileInput: HTMLInputElement;
-	let selectedFile: File | null = $state(null);
+	let { selectedFile = $bindable(null) }: { selectedFile?: File | null } = $props();
 	let audioUrl: string | null = $state(null);
 	let isPlaying: boolean = $state(false);
 	let currentTime: number = $state(0);
@@ -123,7 +123,7 @@
 	});
 </script>
 
-<div class="audio-player border-theme mx-auto w-full max-w-md rounded border p-6">
+<div class="audio-player border-theme mx-auto w-full rounded border p-6">
 	<!-- File Input (Hidden) -->
 	<input
 		bind:this={fileInput}
@@ -138,15 +138,11 @@
 		Select Audio File
 	</button>
 
-	<!-- Selected File Info -->
-	{#if selectedFile}
-		<div class="border-theme mb-4 rounded border p-3">
-			<p class="text-sm">Selected file:</p>
-			<p class="truncate">{selectedFile.name}</p>
-		</div>
-	{/if}
+	<div class="border-theme mb-4 rounded border p-3">
+		<p class="text-sm">Selected file:</p>
+		<p class="truncate">{selectedFile?.name || '...'}</p>
+	</div>
 
-	<!-- Audio Element -->
 	{#if audioUrl}
 		<audio
 			bind:this={audioElement}
@@ -163,37 +159,31 @@
 	{/if}
 
 	<!-- Playback Controls -->
-	{#if isLoaded}
-		<div class="mb-4">
-			<button
-				on:click={togglePlayPause}
-				class="border-theme rounded border px-6 py-2 disabled:opacity-50"
-				disabled={!isLoaded}
-			>
-				{isPlaying ? 'Pause' : 'Play'}
-			</button>
-		</div>
+	<div class="mb-4">
+		<button
+			on:click={togglePlayPause}
+			class="border-theme rounded border px-6 py-2 disabled:opacity-50"
+			disabled={!isLoaded}
+		>
+			{isPlaying ? 'Pause' : 'Play'}
+		</button>
+	</div>
 
-		<!-- Progress Bar -->
-		<div class="mb-4">
-			<div class="border-theme h-2 w-full rounded-full border">
-				<div
-					class="h-2 rounded-full"
-					style="width: {duration > 0
-						? (currentTime / duration) * 100
-						: 0}%; background: currentColor;"
-				></div>
-			</div>
+	<!-- Progress Bar -->
+	<div class="mb-4">
+		<div class="border-theme h-2 w-full rounded-full border">
+			<div
+				class="h-2 rounded-full"
+				style="width: {duration > 0
+					? (currentTime / duration) * 100
+					: 0}%; background: currentColor;"
+			></div>
 		</div>
+	</div>
 
-		<!-- Timestamp Display -->
-		<div class="flex flex-col justify-between font-mono text-sm">
-			<span bind:this={startTimeElement}>Start: {formatTime(currentTime)}</span>
-			<span bind:this={endTimeElement}>End: {formatTime(duration)}</span>
-		</div>
-	{:else if selectedFile}
-		<div class="py-4 text-center">Loading audio file...</div>
-	{:else}
-		<div class="py-8 text-center">Select an audio file to begin</div>
-	{/if}
+	<!-- Timestamp Display -->
+	<div class="flex flex-col justify-between font-mono text-sm">
+		<span bind:this={startTimeElement}>Start: {formatTime(currentTime)}</span>
+		<span bind:this={endTimeElement}>End: {formatTime(duration)}</span>
+	</div>
 </div>
