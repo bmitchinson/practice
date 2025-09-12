@@ -21,7 +21,8 @@
 	</div>
 
 	<!-- Width Control Slider - Fixed position and width - Only show if file selected -->
-	{#if selectedFile}
+	<!-- NOTE: Leaving this commented on purpose, might add back later if I add a waveform visualization --
+	<!-- {#if selectedFile}
 		<div class="mx-auto mt-8 w-80 px-4">
 			<label for="width-slider" class="mb-2 block text-sm"> Zoom Level </label>
 			<input
@@ -33,5 +34,5 @@
 				class="h-2 w-full cursor-pointer rounded-lg border"
 			/>
 		</div>
-	{/if}
+	{/if} -->
 </main>
