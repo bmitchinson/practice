@@ -184,7 +184,7 @@
 	});
 </script>
 
-<div class="audio-player border-theme mx-auto w-full rounded border p-6">
+<div class="audio-player border-theme mx-auto w-full rounded border p-6 text-center">
 	<!-- File Input (Hidden) -->
 	<input
 		bind:this={fileInput}
@@ -195,11 +195,13 @@
 	/>
 
 	<!-- File Selection Button -->
-	<button onclick={selectFile} class="border-theme mb-4 w-full rounded border px-4 py-2">
-		Select Audio File
-	</button>
+	<div class="flex justify-center">
+		<button onclick={selectFile} class="border-theme mb-4 rounded border px-4 py-2">
+			Select Audio File
+		</button>
+	</div>
 
-	<div class="border-theme mb-4 rounded border p-3">
+	<div class="border-theme mb-4 rounded border p-3 text-center">
 		<p class="text-sm">Selected file:</p>
 		<p class="truncate">{selectedFile?.name || '...'}</p>
 	</div>
@@ -220,7 +222,7 @@
 	{/if}
 
 	<!-- Playback Controls -->
-	<div class="mb-4">
+	<div class="mb-4 flex justify-center">
 		<button
 			onclick={togglePlayPause}
 			class="border-theme rounded border px-6 py-2 disabled:opacity-50"
@@ -231,7 +233,7 @@
 	</div>
 
 	<!-- Playback Speed Control -->
-	<div class="mb-4">
+	<div class="mb-4 flex justify-center">
 		<div class="flex items-center gap-2">
 			<label for="playback-rate" class="text-sm">Speed:</label>
 			<input
@@ -250,7 +252,7 @@
 	</div>
 
 	<!-- Progress Bar -->
-	<div class="mb-4">
+	<div class="mb-4 flex justify-center">
 		<div class="border-theme h-2 w-full rounded-full border">
 			<div
 				class="h-2 rounded-full"
@@ -262,7 +264,7 @@
 	</div>
 
 	<!-- Position Control -->
-	<div class="mb-4">
+	<div class="mb-4 flex justify-center">
 		<div class="flex items-center gap-2 font-mono text-sm">
 			<span>Position:</span>
 			<input
@@ -295,7 +297,7 @@
 	</div>
 
 	<!-- End Time Display -->
-	<div class="flex flex-col justify-between font-mono text-sm">
+	<div class="flex justify-center font-mono text-sm">
 		<span bind:this={endTimeElement}>End: {formatTime(duration)}</span>
 	</div>
 </div>
