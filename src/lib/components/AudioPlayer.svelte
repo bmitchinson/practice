@@ -313,7 +313,7 @@
 	</div>
 
 	<!-- End Time Display -->
-	<div class="mb-4 flex justify-center font-mono text-sm">
+	<div class="mb-4 flex justify-center text-sm">
 		<span bind:this={endTimeElement}>length: {formatTime(duration)}</span>
 	</div>
 
@@ -358,7 +358,7 @@
 				class="flex-1"
 				disabled={!isLoaded}
 			/>
-			<span class="w-12 font-mono text-sm">{playbackRate.toFixed(2)}x</span>
+			<span class="w-12 text-sm">{playbackRate.toFixed(2)}x</span>
 		</div>
 	</div>
 
@@ -376,7 +376,7 @@
 
 	<!-- Position Control -->
 	<div class="mb-4 flex justify-center">
-		<div class="flex items-center gap-2 font-mono text-sm">
+		<div class="flex items-center gap-2 text-sm">
 			<span>position:</span>
 			<input
 				type="text"
@@ -415,7 +415,7 @@
 
 	<!-- Loop Start Control -->
 	<div class="mb-4 flex justify-end">
-		<div class="flex items-center gap-2 font-mono text-sm">
+		<div class="flex items-center gap-2 text-sm">
 			<span>loop start:</span>
 			<input
 				type="text"
@@ -455,7 +455,7 @@
 
 	<!-- Loop End Control -->
 	<div class="mb-4 flex justify-end">
-		<div class="flex items-center gap-2 font-mono text-sm">
+		<div class="flex items-center gap-2 text-sm">
 			<span>loop end:</span>
 			<input
 				type="text"
