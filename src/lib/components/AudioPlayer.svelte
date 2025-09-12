@@ -10,8 +10,10 @@
 	let duration: number = $state(0);
 	let isLoaded: boolean = $state(false);
 	let animationFrameId: number | null = null;
-	let startTimeElement: HTMLElement;
 	let endTimeElement: HTMLElement;
+	let positionMinutes: string = $state('00');
+	let positionSeconds: string = $state('00');
+	let positionMilliseconds: string = $state('000');
 
 	function formatTime(seconds: number): string {
 		if (isNaN(seconds) || seconds === 0) {
@@ -25,16 +27,65 @@
 		return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}:${ms.toString().padStart(3, '0')}`;
 	}
 
+	function updatePositionFields() {
+		const minutes = Math.floor(currentTime / 60);
+		const secs = Math.floor(currentTime % 60);
+		const ms = Math.floor((currentTime % 1) * 1000);
+
+		positionMinutes = minutes.toString().padStart(2, '0');
+		positionSeconds = secs.toString().padStart(2, '0');
+		positionMilliseconds = ms.toString().padStart(3, '0');
+	}
+
+	function handlePositionChange() {
+		if (!audioElement || !isLoaded) return;
+
+		const minutes = parseInt(positionMinutes) || 0;
+		const seconds = parseInt(positionSeconds) || 0;
+		const ms = parseInt(positionMilliseconds) || 0;
+
+		// Validate inputs
+		if (seconds >= 60 || ms >= 1000) return;
+
+		const totalSeconds = minutes * 60 + seconds + ms / 1000;
+
+		// Don't allow seeking beyond duration
+		if (totalSeconds > duration) return;
+
+		audioElement.currentTime = totalSeconds;
+	}
+
+	function handlePositionInput(event: Event, field: 'minutes' | 'seconds' | 'milliseconds') {
+		const target = event.target as HTMLInputElement;
+		let value = target.value.replace(/\D/g, ''); // Only allow digits
+
+		// Apply field-specific validation
+		if (field === 'minutes') {
+			positionMinutes = value.padStart(2, '0').slice(-2);
+			positionSeconds = '00';
+			positionMilliseconds = '000';
+		} else if (field === 'seconds') {
+			value = Math.min(parseInt(value) || 0, 59).toString();
+			positionSeconds = value.padStart(2, '0');
+			positionMilliseconds = '000';
+		} else if (field === 'milliseconds') {
+			value = Math.min(parseInt(value) || 0, 999).toString();
+			positionMilliseconds = value.padStart(3, '0');
+		}
+
+		handlePositionChange();
+	}
+
 	function updateTimestamps() {
-		if (audioElement && startTimeElement && endTimeElement) {
+		if (audioElement && endTimeElement) {
 			const current = audioElement.currentTime;
 			const total = audioElement.duration || 0;
 
-			startTimeElement.textContent = `Start: ${formatTime(current)}`;
 			endTimeElement.textContent = `End: ${formatTime(total)}`;
 
-			// Update progress bar
+			// Update progress bar and position fields
 			currentTime = current;
+			updatePositionFields();
 		}
 
 		if (isPlaying && audioElement && !audioElement.ended) {
@@ -82,6 +133,7 @@
 
 	function handleTimeUpdate() {
 		currentTime = audioElement.currentTime;
+		updatePositionFields();
 	}
 
 	function handlePlay() {
@@ -181,9 +233,41 @@
 		</div>
 	</div>
 
-	<!-- Timestamp Display -->
+	<!-- Position Control -->
+	<div class="mb-4">
+		<div class="flex items-center gap-2 font-mono text-sm">
+			<span>Position:</span>
+			<input
+				type="text"
+				bind:value={positionMinutes}
+				on:input={(e) => handlePositionInput(e, 'minutes')}
+				class="w-8 rounded border px-1 text-center"
+				maxlength="2"
+				disabled={!isLoaded}
+			/>
+			<span>:</span>
+			<input
+				type="text"
+				bind:value={positionSeconds}
+				on:input={(e) => handlePositionInput(e, 'seconds')}
+				class="w-8 rounded border px-1 text-center"
+				maxlength="2"
+				disabled={!isLoaded}
+			/>
+			<span>:</span>
+			<input
+				type="text"
+				bind:value={positionMilliseconds}
+				on:input={(e) => handlePositionInput(e, 'milliseconds')}
+				class="w-12 rounded border px-1 text-center"
+				maxlength="3"
+				disabled={!isLoaded}
+			/>
+		</div>
+	</div>
+
+	<!-- End Time Display -->
 	<div class="flex flex-col justify-between font-mono text-sm">
-		<span bind:this={startTimeElement}>Start: {formatTime(currentTime)}</span>
 		<span bind:this={endTimeElement}>End: {formatTime(duration)}</span>
 	</div>
 </div>
