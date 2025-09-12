@@ -448,7 +448,7 @@
 				class="ml-2 rounded border px-2 py-1 text-xs disabled:opacity-50"
 				disabled={!isLoaded}
 			>
-				Set
+				set
 			</button>
 		</div>
 	</div>
@@ -488,7 +488,7 @@
 				class="ml-2 rounded border px-2 py-1 text-xs disabled:opacity-50"
 				disabled={!isLoaded}
 			>
-				Set
+				set
 			</button>
 		</div>
 	</div>
