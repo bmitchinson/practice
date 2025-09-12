@@ -12,7 +12,7 @@
 	<meta name="description" content="Audio player application" />
 </svelte:head>
 
-<main class="min-h-screen py-8">
+<main class="min-h-screen overflow-x-hidden py-8">
 	<!-- AudioPlayer with dynamic width and centering -->
 	<div class="flex justify-center overflow-hidden">
 		<div style="width: {playerWidth}em;">
