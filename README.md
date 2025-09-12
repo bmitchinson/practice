@@ -14,6 +14,10 @@ A ripoff of [this windows program "BestPractice"](https://bestpractice.sourcefor
 - TIL; https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/preservesPitch
   - I thought this was gonna be way harder. Web rules.
 - Got from initial idea to commit 2d0222a5289f in about 1.5 hours w Claude Sonnet 4 through gh copilot in Zed. Pretty amazing.
+- I built this with the sveltekit static adapter template, and noticed the site size on initial load was 43.6kb transfered.
+  -  I then one shotted "remove svelte from this app and make it vanilla js" and all functionality remained, now 15.9kb transfered....
+  -  How can I keep svelte's syntax for simple static apps, but compile it away into "vanilla" js.
+  -  .... maybe I just keep asking claude to delete svelte as a final step? wild.
 
 ### future ideas:
 
