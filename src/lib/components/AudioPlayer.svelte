@@ -15,6 +15,16 @@
 	let positionSeconds: string = $state('00');
 	let positionMilliseconds: string = $state('000');
 	let playbackRate: number = $state(1.0);
+	let isEditingPosition: boolean = $state(false);
+
+	// Loop controls
+	let loopEnabled: boolean = $state(false);
+	let loopStartMinutes: string = $state('00');
+	let loopStartSeconds: string = $state('00');
+	let loopStartMilliseconds: string = $state('000');
+	let loopEndMinutes: string = $state('00');
+	let loopEndSeconds: string = $state('00');
+	let loopEndMilliseconds: string = $state('000');
 
 	function formatTime(seconds: number): string {
 		if (isNaN(seconds) || seconds === 0) {
@@ -29,13 +39,15 @@
 	}
 
 	function updatePositionFields() {
+		if (isEditingPosition) return;
+
 		const minutes = Math.floor(currentTime / 60);
 		const secs = Math.floor(currentTime % 60);
 		const ms = Math.floor((currentTime % 1) * 1000);
 
-		positionMinutes = minutes.toString().padStart(2, '0');
-		positionSeconds = secs.toString().padStart(2, '0');
-		positionMilliseconds = ms.toString().padStart(3, '0');
+		positionMinutes = minutes.toString();
+		positionSeconds = secs.toString();
+		positionMilliseconds = ms.toString();
 	}
 
 	function handlePositionChange() {
@@ -58,23 +70,97 @@
 
 	function handlePositionInput(event: Event, field: 'minutes' | 'seconds' | 'milliseconds') {
 		const target = event.target as HTMLInputElement;
-		let value = target.value.replace(/\D/g, ''); // Only allow digits
+		const value = target.value;
 
-		// Apply field-specific validation
+		// Update the specific field without any validation or manipulation
 		if (field === 'minutes') {
-			positionMinutes = value.padStart(2, '0').slice(-2);
-			positionSeconds = '00';
-			positionMilliseconds = '000';
+			positionMinutes = value;
 		} else if (field === 'seconds') {
-			value = Math.min(parseInt(value) || 0, 59).toString();
-			positionSeconds = value.padStart(2, '0');
-			positionMilliseconds = '000';
+			positionSeconds = value;
 		} else if (field === 'milliseconds') {
-			value = Math.min(parseInt(value) || 0, 999).toString();
-			positionMilliseconds = value.padStart(3, '0');
+			positionMilliseconds = value;
 		}
 
 		handlePositionChange();
+	}
+
+	function handlePositionFocus() {
+		isEditingPosition = true;
+	}
+
+	function handlePositionBlur() {
+		isEditingPosition = false;
+		updatePositionFields();
+	}
+
+	function handleLoopInput(
+		event: Event,
+		field: 'minutes' | 'seconds' | 'milliseconds',
+		type: 'start' | 'end'
+	) {
+		const target = event.target as HTMLInputElement;
+		const value = target.value;
+
+		// Update the specific field without any validation or manipulation
+		if (field === 'minutes') {
+			if (type === 'start') {
+				loopStartMinutes = value;
+			} else {
+				loopEndMinutes = value;
+			}
+		} else if (field === 'seconds') {
+			if (type === 'start') {
+				loopStartSeconds = value;
+			} else {
+				loopEndSeconds = value;
+			}
+		} else if (field === 'milliseconds') {
+			if (type === 'start') {
+				loopStartMilliseconds = value;
+			} else {
+				loopEndMilliseconds = value;
+			}
+		}
+	}
+
+	function getLoopTime(type: 'start' | 'end'): number {
+		if (type === 'start') {
+			const minutes = parseInt(loopStartMinutes) || 0;
+			const seconds = parseInt(loopStartSeconds) || 0;
+			const ms = parseInt(loopStartMilliseconds) || 0;
+			return minutes * 60 + seconds + ms / 1000;
+		} else {
+			const minutes = parseInt(loopEndMinutes) || 0;
+			const seconds = parseInt(loopEndSeconds) || 0;
+			const ms = parseInt(loopEndMilliseconds) || 0;
+			return minutes * 60 + seconds + ms / 1000;
+		}
+	}
+
+	function setLoopStart() {
+		if (!audioElement || !isLoaded) return;
+
+		const current = audioElement.currentTime;
+		const minutes = Math.floor(current / 60);
+		const secs = Math.floor(current % 60);
+		const ms = Math.floor((current % 1) * 1000);
+
+		loopStartMinutes = minutes.toString();
+		loopStartSeconds = secs.toString();
+		loopStartMilliseconds = ms.toString();
+	}
+
+	function setLoopEnd() {
+		if (!audioElement || !isLoaded) return;
+
+		const current = audioElement.currentTime;
+		const minutes = Math.floor(current / 60);
+		const secs = Math.floor(current % 60);
+		const ms = Math.floor((current % 1) * 1000);
+
+		loopEndMinutes = minutes.toString();
+		loopEndSeconds = secs.toString();
+		loopEndMilliseconds = ms.toString();
 	}
 
 	function updateTimestamps() {
@@ -87,6 +173,16 @@
 			// Update progress bar and position fields
 			currentTime = current;
 			updatePositionFields();
+
+			// Handle looping
+			if (loopEnabled && audioElement && isLoaded) {
+				const loopEnd = getLoopTime('end');
+				const loopStart = getLoopTime('start');
+
+				if (loopEnd > 0 && current >= loopEnd) {
+					audioElement.currentTime = loopStart;
+				}
+			}
 		}
 
 		if (isPlaying && audioElement && !audioElement.ended) {
@@ -137,6 +233,16 @@
 	function handleTimeUpdate() {
 		currentTime = audioElement.currentTime;
 		updatePositionFields();
+
+		// Handle looping
+		if (loopEnabled && audioElement && isLoaded) {
+			const loopEnd = getLoopTime('end');
+			const loopStart = getLoopTime('start');
+
+			if (loopEnd > 0 && currentTime >= loopEnd) {
+				audioElement.currentTime = loopStart;
+			}
+		}
 	}
 
 	function handlePlay() {
@@ -197,13 +303,18 @@
 	<!-- File Selection Button -->
 	<div class="flex justify-center">
 		<button onclick={selectFile} class="border-theme mb-4 rounded border px-4 py-2">
-			Select Audio File
+			select audio file
 		</button>
 	</div>
 
 	<div class="border-theme mb-4 rounded border p-3 text-center">
-		<p class="text-sm">Selected file:</p>
+		<p class="text-sm">selected file:</p>
 		<p class="truncate">{selectedFile?.name || '...'}</p>
+	</div>
+
+	<!-- End Time Display -->
+	<div class="mb-4 flex justify-center font-mono text-sm">
+		<span bind:this={endTimeElement}>length: {formatTime(duration)}</span>
 	</div>
 
 	{#if audioUrl}
@@ -228,14 +339,14 @@
 			class="border-theme rounded border px-6 py-2 disabled:opacity-50"
 			disabled={!isLoaded}
 		>
-			{isPlaying ? 'Pause' : 'Play'}
+			{isPlaying ? 'pause' : 'play'}
 		</button>
 	</div>
 
 	<!-- Playback Speed Control -->
 	<div class="mb-4 flex justify-center">
 		<div class="flex items-center gap-2">
-			<label for="playback-rate" class="text-sm">Speed:</label>
+			<label for="playback-rate" class="text-sm">speed:</label>
 			<input
 				id="playback-rate"
 				type="range"
@@ -266,13 +377,14 @@
 	<!-- Position Control -->
 	<div class="mb-4 flex justify-center">
 		<div class="flex items-center gap-2 font-mono text-sm">
-			<span>Position:</span>
+			<span>position:</span>
 			<input
 				type="text"
 				bind:value={positionMinutes}
 				oninput={(e) => handlePositionInput(e, 'minutes')}
+				onfocus={handlePositionFocus}
+				onblur={handlePositionBlur}
 				class="w-8 rounded border px-1 text-center"
-				maxlength="2"
 				disabled={!isLoaded}
 			/>
 			<span>:</span>
@@ -280,8 +392,9 @@
 				type="text"
 				bind:value={positionSeconds}
 				oninput={(e) => handlePositionInput(e, 'seconds')}
+				onfocus={handlePositionFocus}
+				onblur={handlePositionBlur}
 				class="w-8 rounded border px-1 text-center"
-				maxlength="2"
 				disabled={!isLoaded}
 			/>
 			<span>:</span>
@@ -289,15 +402,102 @@
 				type="text"
 				bind:value={positionMilliseconds}
 				oninput={(e) => handlePositionInput(e, 'milliseconds')}
+				onfocus={handlePositionFocus}
+				onblur={handlePositionBlur}
 				class="w-12 rounded border px-1 text-center"
-				maxlength="3"
 				disabled={!isLoaded}
 			/>
 		</div>
 	</div>
 
-	<!-- End Time Display -->
-	<div class="flex justify-center font-mono text-sm">
-		<span bind:this={endTimeElement}>End: {formatTime(duration)}</span>
+	<!-- Separator -->
+	<hr class="my-4" />
+
+	<!-- Loop Start Control -->
+	<div class="mb-4 flex justify-end">
+		<div class="flex items-center gap-2 font-mono text-sm">
+			<span>loop start:</span>
+			<input
+				type="text"
+				bind:value={loopStartMinutes}
+				oninput={(e) => handleLoopInput(e, 'minutes', 'start')}
+				class="w-8 rounded border px-1 text-center"
+				maxlength="2"
+				disabled={!isLoaded}
+			/>
+			<span>:</span>
+			<input
+				type="text"
+				bind:value={loopStartSeconds}
+				oninput={(e) => handleLoopInput(e, 'seconds', 'start')}
+				class="w-8 rounded border px-1 text-center"
+				maxlength="2"
+				disabled={!isLoaded}
+			/>
+			<span>:</span>
+			<input
+				type="text"
+				bind:value={loopStartMilliseconds}
+				oninput={(e) => handleLoopInput(e, 'milliseconds', 'start')}
+				class="w-12 rounded border px-1 text-center"
+				maxlength="3"
+				disabled={!isLoaded}
+			/>
+			<button
+				onclick={setLoopStart}
+				class="ml-2 rounded border px-2 py-1 text-xs disabled:opacity-50"
+				disabled={!isLoaded}
+			>
+				Set
+			</button>
+		</div>
+	</div>
+
+	<!-- Loop End Control -->
+	<div class="mb-4 flex justify-end">
+		<div class="flex items-center gap-2 font-mono text-sm">
+			<span>loop end:</span>
+			<input
+				type="text"
+				bind:value={loopEndMinutes}
+				oninput={(e) => handleLoopInput(e, 'minutes', 'end')}
+				class="w-8 rounded border px-1 text-center"
+				maxlength="2"
+				disabled={!isLoaded}
+			/>
+			<span>:</span>
+			<input
+				type="text"
+				bind:value={loopEndSeconds}
+				oninput={(e) => handleLoopInput(e, 'seconds', 'end')}
+				class="w-8 rounded border px-1 text-center"
+				maxlength="2"
+				disabled={!isLoaded}
+			/>
+			<span>:</span>
+			<input
+				type="text"
+				bind:value={loopEndMilliseconds}
+				oninput={(e) => handleLoopInput(e, 'milliseconds', 'end')}
+				class="w-12 rounded border px-1 text-center"
+				maxlength="3"
+				disabled={!isLoaded}
+			/>
+			<button
+				onclick={setLoopEnd}
+				class="ml-2 rounded border px-2 py-1 text-xs disabled:opacity-50"
+				disabled={!isLoaded}
+			>
+				Set
+			</button>
+		</div>
+	</div>
+
+	<!-- Loop Controls -->
+	<div class="mr-3 flex justify-end">
+		<div class="flex items-center gap-2">
+			<label for="loop-enabled" class="text-sm">enable loop</label>
+			<input type="checkbox" id="loop-enabled" bind:checked={loopEnabled} disabled={!isLoaded} />
+		</div>
 	</div>
 </div>
