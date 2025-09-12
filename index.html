@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Audio Player</title>
+		<meta name="description" content="Audio player application" />
+		<link rel="icon" href="./static/favicon.ico" />
+		<link rel="stylesheet" href="./src/app.css" />
+	</head>
+	<body style="overflow-x: hidden">
+		<header class="mx-8 my-4 flex flex-row items-center justify-between space-x-4 text-2xl">
+			practice
+			<a href="https://mitchinson.dev" class="underline">my work</a>
+		</header>
+
+		<hr class="border-theme mt-4 mb-4 w-full border-t" />
+
+		<div class="flex flex-col items-center justify-between">
+			<main class="min-h-screen overflow-x-hidden py-8">
+				<!-- AudioPlayer with dynamic width and centering -->
+				<div class="flex justify-center overflow-hidden">
+					<div id="audio-player-container" style="width: 25em">
+						<div
+							id="audio-player"
+							class="audio-player border-theme mx-auto w-full rounded border p-6 text-center"
+						>
+							<!-- File Input (Hidden) -->
+							<input id="file-input" type="file" accept="audio/*" class="hidden" />
+
+							<!-- File Selection Button -->
+							<div class="flex justify-center">
+								<button id="select-file-btn" class="border-theme mb-4 rounded border px-4 py-2">
+									select audio file
+								</button>
+							</div>
+
+							<div class="border-theme mb-4 rounded border p-3 text-center">
+								<p class="text-sm">selected file:</p>
+								<p id="selected-file-name" class="truncate">...</p>
+							</div>
+
+							<!-- End Time Display -->
+							<div class="mb-4 flex justify-center text-sm">
+								<span id="end-time">length: 00:00:000</span>
+							</div>
+
+							<audio id="audio-element" class="hidden">
+								<track kind="captions" />
+							</audio>
+
+							<!-- Playback Controls -->
+							<div class="mb-4 flex justify-center">
+								<button
+									id="play-pause-btn"
+									class="border-theme rounded border px-6 py-2 disabled:opacity-50"
+									disabled
+								>
+									play
+								</button>
+							</div>
+
+							<!-- Playback Speed Control -->
+							<div class="mb-4 flex justify-center">
+								<div class="flex items-center gap-2">
+									<label for="playback-rate" class="text-sm">speed:</label>
+									<input
+										id="playback-rate"
+										type="range"
+										min="0.25"
+										max="2"
+										step="0.05"
+										value="1.0"
+										class="flex-1"
+										disabled
+									/>
+									<span id="playback-rate-display" class="w-12 text-sm">1.00x</span>
+								</div>
+							</div>
+
+							<!-- Progress Bar -->
+							<div class="mb-4 flex justify-center">
+								<div class="border-theme h-2 w-full rounded-full border">
+									<div
+										id="progress-bar"
+										class="h-2 rounded-full"
+										style="width: 0%; background: currentColor"
+									></div>
+								</div>
+							</div>
+
+							<!-- Position Control -->
+							<div class="mb-4 flex justify-center">
+								<div class="flex items-center gap-2 text-sm">
+									<span>position:</span>
+									<input
+										id="position-minutes"
+										type="text"
+										value="00"
+										class="w-8 rounded border px-1 text-center"
+										disabled
+									/>
+									<span>:</span>
+									<input
+										id="position-seconds"
+										type="text"
+										value="00"
+										class="w-8 rounded border px-1 text-center"
+										disabled
+									/>
+									<span>:</span>
+									<input
+										id="position-milliseconds"
+										type="text"
+										value="000"
+										class="w-12 rounded border px-1 text-center"
+										disabled
+									/>
+								</div>
+							</div>
+
+							<!-- Separator -->
+							<hr class="my-4" />
+
+							<!-- Loop Start Control -->
+							<div class="mb-4 flex justify-end">
+								<div class="flex items-center gap-2 text-sm">
+									<span>loop start:</span>
+									<input
+										id="loop-start-minutes"
+										type="text"
+										value="00"
+										class="w-8 rounded border px-1 text-center"
+										maxlength="2"
+										disabled
+									/>
+									<span>:</span>
+									<input
+										id="loop-start-seconds"
+										type="text"
+										value="00"
+										class="w-8 rounded border px-1 text-center"
+										maxlength="2"
+										disabled
+									/>
+									<span>:</span>
+									<input
+										id="loop-start-milliseconds"
+										type="text"
+										value="000"
+										class="w-12 rounded border px-1 text-center"
+										maxlength="3"
+										disabled
+									/>
+									<button
+										id="set-loop-start-btn"
+										class="ml-2 rounded border px-2 py-1 text-xs disabled:opacity-50"
+										disabled
+									>
+										set
+									</button>
+								</div>
+							</div>
+
+							<!-- Loop End Control -->
+							<div class="mb-4 flex justify-end">
+								<div class="flex items-center gap-2 text-sm">
+									<span>loop end:</span>
+									<input
+										id="loop-end-minutes"
+										type="text"
+										value="00"
+										class="w-8 rounded border px-1 text-center"
+										maxlength="2"
+										disabled
+									/>
+									<span>:</span>
+									<input
+										id="loop-end-seconds"
+										type="text"
+										value="00"
+										class="w-8 rounded border px-1 text-center"
+										maxlength="2"
+										disabled
+									/>
+									<span>:</span>
+									<input
+										id="loop-end-milliseconds"
+										type="text"
+										value="000"
+										class="w-12 rounded border px-1 text-center"
+										maxlength="3"
+										disabled
+									/>
+									<button
+										id="set-loop-end-btn"
+										class="ml-2 rounded border px-2 py-1 text-xs disabled:opacity-50"
+										disabled
+									>
+										set
+									</button>
+								</div>
+							</div>
+
+							<!-- Loop Controls -->
+							<div class="mr-3 flex justify-end">
+								<div class="flex items-center gap-2">
+									<label for="loop-enabled" class="text-sm">enable loop</label>
+									<input type="checkbox" id="loop-enabled" disabled />
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+
+		<script type="module" src="./src/app.js"></script>
+	</body>
+</html>
