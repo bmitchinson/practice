@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	let audioElement: HTMLAudioElement;
+	let audioElement: HTMLAudioElement = $state(null!);
 	let fileInput: HTMLInputElement;
 	let { selectedFile = $bindable(null) }: { selectedFile?: File | null } = $props();
 	let audioUrl: string | null = $state(null);
@@ -14,6 +14,7 @@
 	let positionMinutes: string = $state('00');
 	let positionSeconds: string = $state('00');
 	let positionMilliseconds: string = $state('000');
+	let playbackRate: number = $state(1.0);
 
 	function formatTime(seconds: number): string {
 		if (isNaN(seconds) || seconds === 0) {
@@ -129,6 +130,8 @@
 	function handleLoadedMetadata() {
 		duration = audioElement.duration;
 		isLoaded = true;
+		audioElement.preservesPitch = true;
+		audioElement.playbackRate = playbackRate;
 	}
 
 	function handleTimeUpdate() {
@@ -162,6 +165,12 @@
 		fileInput.click();
 	}
 
+	function handlePlaybackRateChange() {
+		if (audioElement && isLoaded) {
+			audioElement.playbackRate = playbackRate;
+		}
+	}
+
 	onMount(() => {
 		return () => {
 			// Clean up object URL and animation frame on component destroy
@@ -181,12 +190,12 @@
 		bind:this={fileInput}
 		type="file"
 		accept="audio/*"
-		on:change={handleFileSelect}
+		onchange={handleFileSelect}
 		class="hidden"
 	/>
 
 	<!-- File Selection Button -->
-	<button on:click={selectFile} class="border-theme mb-4 w-full rounded border px-4 py-2">
+	<button onclick={selectFile} class="border-theme mb-4 w-full rounded border px-4 py-2">
 		Select Audio File
 	</button>
 
@@ -199,11 +208,11 @@
 		<audio
 			bind:this={audioElement}
 			src={audioUrl}
-			on:loadedmetadata={handleLoadedMetadata}
-			on:timeupdate={handleTimeUpdate}
-			on:play={handlePlay}
-			on:pause={handlePause}
-			on:ended={handleEnded}
+			onloadedmetadata={handleLoadedMetadata}
+			ontimeupdate={handleTimeUpdate}
+			onplay={handlePlay}
+			onpause={handlePause}
+			onended={handleEnded}
 			class="hidden"
 		>
 			<track kind="captions" />
@@ -213,12 +222,31 @@
 	<!-- Playback Controls -->
 	<div class="mb-4">
 		<button
-			on:click={togglePlayPause}
+			onclick={togglePlayPause}
 			class="border-theme rounded border px-6 py-2 disabled:opacity-50"
 			disabled={!isLoaded}
 		>
 			{isPlaying ? 'Pause' : 'Play'}
 		</button>
+	</div>
+
+	<!-- Playback Speed Control -->
+	<div class="mb-4">
+		<div class="flex items-center gap-2">
+			<label for="playback-rate" class="text-sm">Speed:</label>
+			<input
+				id="playback-rate"
+				type="range"
+				min="0.25"
+				max="2"
+				step="0.05"
+				bind:value={playbackRate}
+				oninput={handlePlaybackRateChange}
+				class="flex-1"
+				disabled={!isLoaded}
+			/>
+			<span class="w-12 font-mono text-sm">{playbackRate.toFixed(2)}x</span>
+		</div>
 	</div>
 
 	<!-- Progress Bar -->
@@ -240,7 +268,7 @@
 			<input
 				type="text"
 				bind:value={positionMinutes}
-				on:input={(e) => handlePositionInput(e, 'minutes')}
+				oninput={(e) => handlePositionInput(e, 'minutes')}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
 				disabled={!isLoaded}
@@ -249,7 +277,7 @@
 			<input
 				type="text"
 				bind:value={positionSeconds}
-				on:input={(e) => handlePositionInput(e, 'seconds')}
+				oninput={(e) => handlePositionInput(e, 'seconds')}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
 				disabled={!isLoaded}
@@ -258,7 +286,7 @@
 			<input
 				type="text"
 				bind:value={positionMilliseconds}
-				on:input={(e) => handlePositionInput(e, 'milliseconds')}
+				oninput={(e) => handlePositionInput(e, 'milliseconds')}
 				class="w-12 rounded border px-1 text-center"
 				maxlength="3"
 				disabled={!isLoaded}
