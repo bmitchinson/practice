@@ -7,6 +7,13 @@ LLM Notes:
 Strive for the following:
 
 - Introduce no asthetic (colors, fonts, etc) related css styles to the application at all unless explicitly instructed. Only css that is regards to basic should be utilized.
+  - NO color classes: Avoid bg-[color], text-[color], border-[color] classes unless explicitly requested
+  - NO hover/focus color effects: Avoid hover:bg-[color], focus:ring-[color] etc.
+  - NO aesthetic backgrounds: Avoid colored backgrounds like bg-blue-500, bg-gray-50, etc.
+  - ONLY functional/layout Tailwind: Use only spacing (p-, m-, gap-), sizing (w-, h-), layout (flex, grid), and structural classes
+  - When styling is needed: Use neutral classes like border, rounded, shadow without color specifications
+  - Default to unstyled elements: Let the browser defaults handle appearance unless layout/spacing is needed
+
 - Use tailwind css classes whenever possible
 - This is a static website using the static sveltekit adapter that will be hosted on github pages.
 - TypeScript Support: Full type safety with proper API declarations
