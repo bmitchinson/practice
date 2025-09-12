@@ -123,7 +123,7 @@
 	});
 </script>
 
-<div class="audio-player mx-auto w-full max-w-md rounded border p-6">
+<div class="audio-player border-theme mx-auto w-full max-w-md rounded border p-6">
 	<!-- File Input (Hidden) -->
 	<input
 		bind:this={fileInput}
@@ -134,13 +134,13 @@
 	/>
 
 	<!-- File Selection Button -->
-	<button on:click={selectFile} class="mb-4 w-full rounded border px-4 py-2">
+	<button on:click={selectFile} class="border-theme mb-4 w-full rounded border px-4 py-2">
 		Select Audio File
 	</button>
 
 	<!-- Selected File Info -->
 	{#if selectedFile}
-		<div class="mb-4 rounded border p-3">
+		<div class="border-theme mb-4 rounded border p-3">
 			<p class="text-sm">Selected file:</p>
 			<p class="truncate">{selectedFile.name}</p>
 		</div>
@@ -167,7 +167,7 @@
 		<div class="mb-4">
 			<button
 				on:click={togglePlayPause}
-				class="rounded border px-6 py-2 disabled:opacity-50"
+				class="border-theme rounded border px-6 py-2 disabled:opacity-50"
 				disabled={!isLoaded}
 			>
 				{isPlaying ? 'Pause' : 'Play'}
@@ -176,7 +176,7 @@
 
 		<!-- Progress Bar -->
 		<div class="mb-4">
-			<div class="h-2 w-full rounded-full border">
+			<div class="border-theme h-2 w-full rounded-full border">
 				<div
 					class="h-2 rounded-full"
 					style="width: {duration > 0

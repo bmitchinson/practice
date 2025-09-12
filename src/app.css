@@ -4,4 +4,33 @@
 	html {
 		font-family: 'Times New Roman', Times, serif;
 	}
+
+	/* Enable dark mode based on system preference */
+	@media (prefers-color-scheme: dark) {
+		html {
+			background-color: black;
+			color: white;
+			--border-color: white;
+		}
+	}
+
+	@media (prefers-color-scheme: light) {
+		html {
+			background-color: white;
+			color: black;
+			--border-color: black;
+		}
+	}
+
+	/* Ensure body inherits the colors */
+	body {
+		background-color: inherit;
+		color: inherit;
+		min-height: 100vh;
+	}
+
+	/* Apply border color custom property */
+	.border-theme {
+		border-color: var(--border-color);
+	}
 }

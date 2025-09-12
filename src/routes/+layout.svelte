@@ -15,7 +15,7 @@
 	<a href="https://mitchinson.dev" class={linkClasses}>my work</a>
 </header>
 
-<hr class="mt-4 mb-4 w-full border-t border-gray-300" />
+<hr class="border-theme mt-4 mb-4 w-full border-t" />
 
 <div class="flex flex-col items-center justify-between">
 	{@render children?.()}
