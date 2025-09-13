@@ -2,6 +2,7 @@
 	import AudioPlayer from '$lib/components/AudioPlayer.svelte';
 	import SectionNotes from '$lib/components/SectionNotes.svelte';
 	import SavedSectionsList from '$lib/components/SavedSectionsList.svelte';
+	import ExportImport from '$lib/components/ExportImport.svelte';
 
 	let selectedFile: File | null = $state(null);
 </script>
@@ -26,6 +27,9 @@
 
 				<!-- Saved Sections List -->
 				<SavedSectionsList />
+
+				<!-- Export/Import -->
+				<ExportImport />
 			</div>
 		</div>
 	</div>

@@ -315,9 +315,9 @@
 		</button>
 	</div>
 
-	<div class="border-theme mb-4 rounded border p-3 text-center">
+	<div class="border-theme mb-4 flex flex-col items-center rounded border p-3 text-center">
 		<p class="text-sm">selected file:</p>
-		<p class="truncate">{selectedFile?.name || '...'}</p>
+		<p class="max-w-[15em] truncate">{selectedFile?.name || '...'}</p>
 	</div>
 
 	<!-- End Time Display -->
