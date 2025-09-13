@@ -11,6 +11,9 @@
 	// Subscribe to store
 	let audioState = $derived($audioPlayerStore);
 
+	// Track if any input is focused to disable keyboard shortcuts
+	let isInputFocused = $state(false);
+
 	function formatTime(seconds: number): string {
 		if (isNaN(seconds) || seconds === 0) {
 			return '00:00:000';
@@ -69,6 +72,7 @@
 	}
 
 	function handlePositionFocus() {
+		isInputFocused = true;
 		audioPlayerStore.update((state) => ({
 			...state,
 			isEditingPosition: true
@@ -76,11 +80,20 @@
 	}
 
 	function handlePositionBlur() {
+		isInputFocused = false;
 		audioPlayerStore.update((state) => ({
 			...state,
 			isEditingPosition: false
 		}));
 		updatePositionFields();
+	}
+
+	function handleLoopFocus() {
+		isInputFocused = true;
+	}
+
+	function handleLoopBlur() {
+		isInputFocused = false;
 	}
 
 	function handleLoopInput(
@@ -128,6 +141,29 @@
 			loopEndMinutes: minutes.toString(),
 			loopEndSeconds: secs.toString(),
 			loopEndMilliseconds: ms.toString()
+		}));
+	}
+
+	function gotoLoopStart() {
+		if (!audioElement || !audioState.isLoaded) return;
+
+		const loopStart = getLoopStartTime(audioState);
+		audioElement.currentTime = loopStart;
+	}
+
+	function gotoLoopEnd() {
+		if (!audioElement || !audioState.isLoaded) return;
+
+		const loopEnd = getLoopEndTime(audioState);
+		if (loopEnd > 0) {
+			audioElement.currentTime = loopEnd;
+		}
+	}
+
+	function toggleLoop() {
+		audioPlayerStore.update((state) => ({
+			...state,
+			loopEnabled: !state.loopEnabled
 		}));
 	}
 
@@ -286,6 +322,30 @@
 		}));
 	}
 
+	function handleKeydown(event: KeyboardEvent) {
+		// Check if any input field or textarea is focused anywhere on the page
+		const activeElement = document.activeElement;
+		const isAnyInputFocused =
+			activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
+
+		if (isAnyInputFocused) return;
+
+		switch (event.key.toLowerCase()) {
+			case 's':
+				event.preventDefault();
+				gotoLoopStart();
+				break;
+			case 'e':
+				event.preventDefault();
+				gotoLoopEnd();
+				break;
+			case 'l':
+				event.preventDefault();
+				toggleLoop();
+				break;
+		}
+	}
+
 	onMount(() => {
 		return () => {
 			// Clean up object URL and animation frame on component destroy
@@ -298,6 +358,8 @@
 		};
 	});
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="audio-player border-theme mx-auto w-full rounded border p-6 text-center">
 	<!-- File Input (Hidden) -->
@@ -430,6 +492,8 @@
 				type="text"
 				value={audioState.loopStartMinutes}
 				oninput={(e) => handleLoopInput(e, 'minutes', 'start')}
+				onfocus={handleLoopFocus}
+				onblur={handleLoopBlur}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
 				disabled={!audioState.isLoaded}
@@ -439,6 +503,8 @@
 				type="text"
 				value={audioState.loopStartSeconds}
 				oninput={(e) => handleLoopInput(e, 'seconds', 'start')}
+				onfocus={handleLoopFocus}
+				onblur={handleLoopBlur}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
 				disabled={!audioState.isLoaded}
@@ -448,6 +514,8 @@
 				type="text"
 				value={audioState.loopStartMilliseconds}
 				oninput={(e) => handleLoopInput(e, 'milliseconds', 'start')}
+				onfocus={handleLoopFocus}
+				onblur={handleLoopBlur}
 				class="w-12 rounded border px-1 text-center"
 				maxlength="3"
 				disabled={!audioState.isLoaded}
@@ -458,6 +526,14 @@
 				disabled={!audioState.isLoaded}
 			>
 				set
+			</button>
+			<button
+				onclick={gotoLoopStart}
+				class="ml-1 rounded border px-2 py-1 text-xs disabled:opacity-50"
+				disabled={!audioState.isLoaded}
+				title="Press 's' to goto start"
+			>
+				goto (s)
 			</button>
 		</div>
 	</div>
@@ -470,6 +546,8 @@
 				type="text"
 				value={audioState.loopEndMinutes}
 				oninput={(e) => handleLoopInput(e, 'minutes', 'end')}
+				onfocus={handleLoopFocus}
+				onblur={handleLoopBlur}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
 				disabled={!audioState.isLoaded}
@@ -479,6 +557,8 @@
 				type="text"
 				value={audioState.loopEndSeconds}
 				oninput={(e) => handleLoopInput(e, 'seconds', 'end')}
+				onfocus={handleLoopFocus}
+				onblur={handleLoopBlur}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
 				disabled={!audioState.isLoaded}
@@ -488,6 +568,8 @@
 				type="text"
 				value={audioState.loopEndMilliseconds}
 				oninput={(e) => handleLoopInput(e, 'milliseconds', 'end')}
+				onfocus={handleLoopFocus}
+				onblur={handleLoopBlur}
 				class="w-12 rounded border px-1 text-center"
 				maxlength="3"
 				disabled={!audioState.isLoaded}
@@ -498,6 +580,14 @@
 				disabled={!audioState.isLoaded}
 			>
 				set
+			</button>
+			<button
+				onclick={gotoLoopEnd}
+				class="ml-1 rounded border px-2 py-1 text-xs disabled:opacity-50"
+				disabled={!audioState.isLoaded}
+				title="Press 'e' to goto end"
+			>
+				goto (e)
 			</button>
 		</div>
 	</div>
@@ -513,6 +603,7 @@
 				onchange={updateLoopEnabled}
 				disabled={!audioState.isLoaded}
 			/>
+			<span class="text-xs opacity-60">(l)</span>
 		</div>
 	</div>
 </div>
