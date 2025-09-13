@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { audioPlayerStore, getLoopStartTime, getLoopEndTime } from '$lib/stores/audioPlayer';
+	import TuningSection from './TuningSection.svelte';
 
 	let audioElement: HTMLAudioElement = $state(null!);
 	let fileInput: HTMLInputElement;
@@ -514,4 +515,9 @@
 			/>
 		</div>
 	</div>
+</div>
+
+<!-- Tuning Section -->
+<div class="mt-6">
+	<TuningSection />
 </div>
