@@ -18,6 +18,12 @@
 	function deleteSection(sectionId: string, event: Event) {
 		event.stopPropagation();
 
+		const section = audioState.savedSections.find((s) => s.id === sectionId);
+		if (!section) return;
+
+		const confirmed = confirm(`Delete section "${section.name}"?`);
+		if (!confirmed) return;
+
 		audioPlayerStore.update((state) => ({
 			...state,
 			savedSections: state.savedSections.filter((s) => s.id !== sectionId)
@@ -26,10 +32,10 @@
 </script>
 
 <div class="rounded border p-4">
-	<h3 class="text-lg font-medium">Saved Sections</h3>
+	<h3 class="text-lg font-medium">saved sections</h3>
 
 	{#if audioState.savedSections.length === 0}
-		<p class="text-sm opacity-60">No saved sections yet</p>
+		<p class="text-sm opacity-60">no saved sections yet</p>
 	{:else}
 		<p class="mb-4 text-sm">Click to load into player</p>
 		<div class="space-y-2">

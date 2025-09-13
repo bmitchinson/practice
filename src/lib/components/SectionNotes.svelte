@@ -45,16 +45,16 @@
 </script>
 
 <div class="space-y-4 rounded border p-4">
-	<h3 class="text-lg font-medium">Section Notes</h3>
+	<h3 class="text-lg font-medium">section notes</h3>
 
 	<!-- Section Name Input -->
 	<div>
-		<label for="section-name" class="mb-1 block text-sm">Section Name:</label>
+		<label for="section-name" class="mb-1 block text-sm">section name</label>
 		<input
 			id="section-name"
 			type="text"
 			bind:value={sectionName}
-			placeholder="Enter section name..."
+			placeholder="name..."
 			class="w-full rounded border px-3 py-2"
 			disabled={!audioState.isLoaded}
 		/>
@@ -62,11 +62,11 @@
 
 	<!-- Note Textarea -->
 	<div>
-		<label for="note" class="mb-1 block text-sm">Note:</label>
+		<label for="note" class="mb-1 block text-sm">note</label>
 		<textarea
 			id="note"
 			bind:value={note}
-			placeholder="Enter your notes about this section..."
+			placeholder="notes..."
 			rows="4"
 			class="w-full resize-none rounded border px-3 py-2"
 			disabled={!audioState.isLoaded}
@@ -80,7 +80,7 @@
 			class="rounded border px-4 py-2 disabled:opacity-50"
 			disabled={!canSave}
 		>
-			Save Section
+			save section
 		</button>
 	</div>
 </div>

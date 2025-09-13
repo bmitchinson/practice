@@ -20,3 +20,5 @@ Strive for the following:
 - Modern Svelte: Use Svelte 5 syntax with `$state` runes
 - Responsive Design: Better styling that works on different screen sizes. You're free to use tailwind.
 - Component Architecture: Reusable component that can be easily imported elsewhere. Feel free to create additional components and ensure the Page.svelte files stay reasonably small.
+
+- When adding any user visable text, ensure it's lowercase
