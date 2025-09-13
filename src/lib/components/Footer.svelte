@@ -9,7 +9,7 @@
 
 <footer class="mt-8 w-full border-t p-4 text-center text-sm">
 	{#if commitHash && commitHash !== 'unknown'}
-		build: <span class="font-mono">{commitHash}</span>
+		build: <a href="https://github.com/bmitchinson/practice" class="font-mono">{commitHash}</a>
 	{:else}
 		build: development
 	{/if}
