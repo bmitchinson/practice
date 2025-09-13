@@ -37,8 +37,7 @@
 		link.href = url;
 
 		// Generate filename
-		const baseName = audioState.selectedFile.name.replace(/\.[^/.]+$/, '');
-		link.download = `${baseName}.practice.json`;
+		link.download = 'song.practice.json';
 
 		// Trigger download
 		document.body.appendChild(link);
@@ -87,24 +86,18 @@
 					})
 				);
 
-				// Ask user how to handle import
-				const replace = confirm(
+				// Ask user for approval to overwrite existing sections
+				const shouldOverwrite = confirm(
 					`Import ${importedSections.length} sections?\n\n` +
-						`Click OK to replace existing sections, or Cancel to add to existing sections.`
+						`This will overwrite all existing sections. Click OK to proceed or Cancel to abort.`
 				);
 
-				audioPlayerStore.update((state) => ({
-					...state,
-					savedSections: replace
-						? importedSections.sort((a, b) => a.startTime - b.startTime)
-						: [...state.savedSections, ...importedSections].sort(
-								(a, b) => a.startTime - b.startTime
-							)
-				}));
-
-				alert(
-					`Successfully imported ${importedSections.length} sections from ${importData.fileName || 'unknown file'}`
-				);
+				if (shouldOverwrite) {
+					audioPlayerStore.update((state) => ({
+						...state,
+						savedSections: importedSections.sort((a, b) => a.startTime - b.startTime)
+					}));
+				}
 			} catch (error) {
 				alert('Error importing file: Invalid format or corrupted file');
 				console.error('Import error:', error);
