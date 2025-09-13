@@ -59,6 +59,20 @@
 		audioElement.currentTime = totalSeconds;
 	}
 
+	function handleProgressBarClick(event: MouseEvent) {
+		if (!audioElement || !audioState.isLoaded) return;
+
+		const progressBar = event.currentTarget as HTMLElement;
+		const rect = progressBar.getBoundingClientRect();
+		const clickX = event.clientX - rect.left;
+		const percentage = clickX / rect.width;
+		const newTime = percentage * audioState.duration;
+
+		// Clamp to valid range
+		const clampedTime = Math.max(0, Math.min(newTime, audioState.duration));
+		audioElement.currentTime = clampedTime;
+	}
+
 	function handlePositionInput(event: Event, field: 'minutes' | 'seconds' | 'milliseconds') {
 		const target = event.target as HTMLInputElement;
 		const value = target.value;
@@ -435,9 +449,20 @@
 
 	<!-- Progress Bar -->
 	<div class="mb-4 flex justify-center">
-		<div class="border-theme h-2 w-full rounded-full border">
+		<div
+			class="border-theme h-4 w-full cursor-pointer rounded-full border hover:h-5"
+			onclick={handleProgressBarClick}
+			role="progressbar"
+			tabindex="0"
+			onkeydown={(e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					handleProgressBarClick(e as any);
+				}
+			}}
+		>
 			<div
-				class="h-2 rounded-full"
+				class="h-full rounded-full"
 				style="width: {audioState.duration > 0
 					? (audioState.currentTime / audioState.duration) * 100
 					: 0}%; background: currentColor;"
