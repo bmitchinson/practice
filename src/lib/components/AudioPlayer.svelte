@@ -169,9 +169,7 @@
 		if (!audioElement || !audioState.isLoaded) return;
 
 		const loopEnd = getLoopEndTime(audioState);
-		if (loopEnd > 0) {
-			audioElement.currentTime = loopEnd;
-		}
+		audioElement.currentTime = loopEnd;
 	}
 
 	function toggleLoop() {
