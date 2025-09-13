@@ -1,10 +1,9 @@
 <script lang="ts">
 	import AudioPlayer from '$lib/components/AudioPlayer.svelte';
+	import SectionNotes from '$lib/components/SectionNotes.svelte';
+	import SavedSectionsList from '$lib/components/SavedSectionsList.svelte';
 
 	let selectedFile: File | null = $state(null);
-	let playerWidth = $state(25); // Default width in em
-	const minWidth = 25;
-	const maxWidth = 400;
 </script>
 
 <svelte:head>
@@ -13,10 +12,21 @@
 </svelte:head>
 
 <main class="min-h-screen overflow-x-hidden py-8">
-	<!-- AudioPlayer with dynamic width and centering -->
-	<div class="flex justify-center overflow-hidden">
-		<div style="width: {playerWidth}em;">
-			<AudioPlayer bind:selectedFile />
+	<div class="container mx-auto max-w-7xl px-4">
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+			<!-- Main Audio Player -->
+			<div class="lg:col-span-2">
+				<AudioPlayer bind:selectedFile />
+			</div>
+
+			<!-- Right Side Components -->
+			<div class="space-y-6 lg:col-span-2">
+				<!-- Section Notes Input -->
+				<SectionNotes />
+
+				<!-- Saved Sections List -->
+				<SavedSectionsList />
+			</div>
 		</div>
 	</div>
 
