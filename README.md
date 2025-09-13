@@ -17,7 +17,9 @@ A ripoff of [this windows program "BestPractice"](https://bestpractice.sourcefor
 - I built this with the sveltekit static adapter template, and noticed the site size on initial load was 43.6kb transfered.
   -  I then one shotted "remove svelte from this app and make it vanilla js" and all functionality remained, now 15.9kb transfered....
   -  How can I keep svelte's syntax for simple static apps, but compile it away into "vanilla" js.
-  -  .... maybe I just keep asking claude to delete svelte as a final step? wild.
+  -  .... maybe I just keep asking claude to delete svelte as a final step? that sounds horrible.
+  - Update: attempting to remove svelte this way kept 99% of things working, but broke a nieche UI interation that I prefer. I don't want to maintain vanilla though, svelte is so much nicer to write.
+  - I'll keep svelte and use this as an exercise in writing vite tests. I hated enzyme in a messy codebase 6 years ago but I should try unit testing again.
 
 ### future ideas:
 
