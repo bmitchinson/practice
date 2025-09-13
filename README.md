@@ -32,6 +32,10 @@ A ripoff of [this windows program "BestPractice"](https://bestpractice.sourcefor
 
 - There's a bit of a chop when the loop navigates the position to the beginning. An advanced loop that utilizes a dedicated audio buffer would be interesting to attempt to avoid that hiccup in playback
 
+- Load demo button to load in an example mp3 / sections
+
+- About page w the contents of this readme
+
 ### learnings:
 
 - Svelte isn't js free, not really sure how that got in my head:
