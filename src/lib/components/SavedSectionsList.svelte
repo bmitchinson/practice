@@ -41,7 +41,10 @@
 		<div class="space-y-2">
 			{#each audioState.savedSections as section (section.id)}
 				<div
-					class="cursor-pointer rounded border p-3 transition-colors hover:border-gray-400"
+					class="cursor-pointer rounded border p-3 transition-colors hover:border-gray-400 {audioState.currentSectionId ===
+					section.id
+						? 'border-2 shadow-md'
+						: ''}"
 					onclick={() => handleSectionClick(section)}
 				>
 					<div class="mb-2 flex items-start justify-between">

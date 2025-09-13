@@ -39,6 +39,7 @@ export interface AudioPlayerState {
 	// Notes and sections
 	currentSectionName: string;
 	currentNote: string;
+	currentSectionId: string | null;
 	savedSections: SavedSection[];
 }
 
@@ -67,6 +68,7 @@ const initialState: AudioPlayerState = {
 
 	currentSectionName: '',
 	currentNote: '',
+	currentSectionId: null,
 	savedSections: []
 };
 
@@ -87,8 +89,13 @@ export function getLoopEndTime(state: AudioPlayerState): number {
 	return minutes * 60 + seconds + ms / 1000;
 }
 
-export function saveSection(sectionName: string, note: string, startTime: number, endTime: number): void {
-	audioPlayerStore.update(state => {
+export function saveSection(
+	sectionName: string,
+	note: string,
+	startTime: number,
+	endTime: number
+): void {
+	audioPlayerStore.update((state) => {
 		const newSection: SavedSection = {
 			id: crypto.randomUUID(),
 			name: sectionName || `Section ${state.savedSections.length + 1}`,
@@ -98,8 +105,9 @@ export function saveSection(sectionName: string, note: string, startTime: number
 			createdAt: new Date()
 		};
 
-		const updatedSections = [...state.savedSections, newSection]
-			.sort((a, b) => a.startTime - b.startTime);
+		const updatedSections = [...state.savedSections, newSection].sort(
+			(a, b) => a.startTime - b.startTime
+		);
 
 		return {
 			...state,
@@ -111,7 +119,7 @@ export function saveSection(sectionName: string, note: string, startTime: number
 }
 
 export function loadSection(section: SavedSection): void {
-	audioPlayerStore.update(state => {
+	audioPlayerStore.update((state) => {
 		const startMinutes = Math.floor(section.startTime / 60);
 		const startSecs = Math.floor(section.startTime % 60);
 		const startMs = Math.floor((section.startTime % 1) * 1000);
@@ -127,7 +135,43 @@ export function loadSection(section: SavedSection): void {
 			loopStartMilliseconds: startMs.toString(),
 			loopEndMinutes: endMinutes.toString(),
 			loopEndSeconds: endSecs.toString(),
-			loopEndMilliseconds: endMs.toString()
+			loopEndMilliseconds: endMs.toString(),
+			currentSectionName: section.name,
+			currentNote: section.note,
+			currentSectionId: section.id
+		};
+	});
+}
+
+export function updateSection(
+	sectionId: string,
+	sectionName: string,
+	note: string,
+	startTime: number,
+	endTime: number
+): void {
+	audioPlayerStore.update((state) => {
+		const updatedSections = state.savedSections
+			.map((section) => {
+				if (section.id === sectionId) {
+					return {
+						...section,
+						name: sectionName || `Section ${state.savedSections.length + 1}`,
+						note,
+						startTime,
+						endTime
+					};
+				}
+				return section;
+			})
+			.sort((a, b) => a.startTime - b.startTime);
+
+		return {
+			...state,
+			savedSections: updatedSections,
+			currentSectionName: '',
+			currentNote: '',
+			currentSectionId: null
 		};
 	});
 }

@@ -2,15 +2,17 @@
 	import {
 		audioPlayerStore,
 		saveSection,
+		updateSection,
 		getLoopStartTime,
 		getLoopEndTime
 	} from '$lib/stores/audioPlayer';
 
-	let sectionName = $state('');
-	let note = $state('');
-
 	// Subscribe to store
 	let audioState = $derived($audioPlayerStore);
+
+	// Bind to store values for editing
+	let sectionName = $derived.by(() => audioState.currentSectionName);
+	let note = $derived.by(() => audioState.currentNote);
 
 	function handleSave() {
 		const state = audioState;
@@ -26,11 +28,35 @@
 			return;
 		}
 
-		saveSection(sectionName, note, startTime, endTime);
+		// Check if we're editing an existing section
+		if (state.currentSectionId) {
+			updateSection(state.currentSectionId, sectionName, note, startTime, endTime);
+		} else {
+			saveSection(sectionName, note, startTime, endTime);
+		}
+	}
 
-		// Clear inputs
-		sectionName = '';
-		note = '';
+	function handleCancel() {
+		audioPlayerStore.update((state) => ({
+			...state,
+			currentSectionName: '',
+			currentNote: '',
+			currentSectionId: null
+		}));
+	}
+
+	function updateSectionName(value: string) {
+		audioPlayerStore.update((state) => ({
+			...state,
+			currentSectionName: value
+		}));
+	}
+
+	function updateNote(value: string) {
+		audioPlayerStore.update((state) => ({
+			...state,
+			currentNote: value
+		}));
 	}
 
 	let canSave = $derived(() => {
@@ -40,21 +66,26 @@
 		const startTime = getLoopStartTime(state);
 		const endTime = getLoopEndTime(state);
 
-		return endTime > startTime && (sectionName.trim() || note.trim());
+		return endTime > startTime && (state.currentSectionName.trim() || state.currentNote.trim());
 	});
+
+	let isEditing = $derived(audioState.currentSectionId !== null);
 </script>
 
 <div class="space-y-4 rounded border p-4">
-	<h3 class="text-lg font-medium">section notes</h3>
+	<h3 class="text-lg font-medium">
+		{isEditing ? 'Edit Section' : 'Section Notes'}
+	</h3>
 
 	<!-- Section Name Input -->
 	<div>
-		<label for="section-name" class="mb-1 block text-sm">section name</label>
+		<label for="section-name" class="mb-1 block text-sm">Section Name:</label>
 		<input
 			id="section-name"
 			type="text"
-			bind:value={sectionName}
-			placeholder="name..."
+			value={sectionName}
+			oninput={(e) => updateSectionName((e.target as HTMLInputElement).value)}
+			placeholder="Enter section name..."
 			class="w-full rounded border px-3 py-2"
 			disabled={!audioState.isLoaded}
 		/>
@@ -62,25 +93,34 @@
 
 	<!-- Note Textarea -->
 	<div>
-		<label for="note" class="mb-1 block text-sm">note</label>
+		<label for="note" class="mb-1 block text-sm">Note:</label>
 		<textarea
 			id="note"
-			bind:value={note}
-			placeholder="notes..."
+			value={note}
+			oninput={(e) => updateNote((e.target as HTMLTextAreaElement).value)}
+			placeholder="Enter your notes about this section..."
 			rows="4"
 			class="w-full resize-none rounded border px-3 py-2"
 			disabled={!audioState.isLoaded}
 		></textarea>
 	</div>
 
-	<!-- Save Button -->
-	<div class="flex justify-end">
-		<button
-			onclick={handleSave}
-			class="rounded border px-4 py-2 disabled:opacity-50"
-			disabled={!canSave}
-		>
-			save section
+	<!-- Buttons -->
+	<div class="flex justify-between">
+		<button onclick={handleCancel} class="rounded border px-4 py-2" disabled={!audioState.isLoaded}>
+			New Section
 		</button>
+		<div class="flex gap-2">
+			{#if isEditing}
+				<button onclick={handleCancel} class="rounded border px-4 py-2"> Cancel </button>
+			{/if}
+			<button
+				onclick={handleSave}
+				class="rounded border px-4 py-2 disabled:opacity-50"
+				disabled={!canSave}
+			>
+				{isEditing ? 'Update Section' : 'Save Section'}
+			</button>
+		</div>
 	</div>
 </div>
