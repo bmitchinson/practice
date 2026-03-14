@@ -27,9 +27,6 @@
 		initAudioContext();
 		if (!audioContext) return;
 
-		// Stop existing oscillator for this note if playing
-		stopNote(note);
-
 		// Create oscillator and gain node
 		const oscillator = audioContext.createOscillator();
 		const gainNode = audioContext.createGain();
@@ -49,17 +46,14 @@
 
 		// Store oscillator reference
 		oscillators.set(note, oscillator);
-		activeNotes.add(note);
-
-		// Auto-stop after 8 seconds
-		setTimeout(() => {
-			stopNote(note);
-		}, 8000);
+		activeNotes = new Set(activeNotes).add(note);
 
 		// Handle oscillator end
 		oscillator.onended = () => {
 			oscillators.delete(note);
-			activeNotes.delete(note);
+			const nextActiveNotes = new Set(activeNotes);
+			nextActiveNotes.delete(note);
+			activeNotes = nextActiveNotes;
 		};
 	}
 
@@ -72,27 +66,22 @@
 				// Oscillator may already be stopped
 			}
 			oscillators.delete(note);
-			activeNotes.delete(note);
 		} else {
 			oscillators.delete(note);
-			activeNotes.delete(note);
 		}
-	}
 
-	function stopAllNotes() {
-		for (const note of activeNotes) {
-			stopNote(note);
-		}
+		const nextActiveNotes = new Set(activeNotes);
+		nextActiveNotes.delete(note);
+		activeNotes = nextActiveNotes;
 	}
 
 	function handleNoteClick(note: string, frequency: number) {
-		// Always stop all notes first
-		stopAllNotes();
-
-		// Then play the new note (unless it was the same note that was already playing)
-		if (!activeNotes.has(note)) {
-			playNote(note, frequency);
+		if (activeNotes.has(note)) {
+			stopNote(note);
+			return;
 		}
+
+		playNote(note, frequency);
 	}
 </script>
 
@@ -106,7 +95,10 @@
 			{#each Object.entries(primaryNotes) as [note, frequency] (note)}
 				<button
 					onclick={() => handleNoteClick(note, frequency)}
-					class="border-theme flex h-12 w-12 items-center justify-center rounded border text-sm"
+					class:border-sky-400={activeNotes.has(note)}
+					class:bg-sky-200={activeNotes.has(note)}
+					class:text-sky-950={activeNotes.has(note)}
+					class="border-theme flex h-12 w-12 items-center justify-center rounded border text-sm transition-colors"
 				>
 					{note}
 				</button>
@@ -121,7 +113,10 @@
 			{#each Object.entries(secondaryNotes) as [note, frequency] (note)}
 				<button
 					onclick={() => handleNoteClick(`${note}-secondary`, frequency)}
-					class="border-theme flex h-10 w-10 items-center justify-center rounded border text-xs"
+					class:border-sky-400={activeNotes.has(`${note}-secondary`)}
+					class:bg-sky-200={activeNotes.has(`${note}-secondary`)}
+					class:text-sky-950={activeNotes.has(`${note}-secondary`)}
+					class="border-theme flex h-10 w-10 items-center justify-center rounded border text-xs transition-colors"
 				>
 					{note}
 				</button>
@@ -129,5 +124,5 @@
 		</div>
 	</div>
 
-	<div class="mt-3 text-center text-xs opacity-75">click to play note for 8 seconds</div>
+	<div class="mt-3 text-center text-xs opacity-75">click a note to toggle it on or off</div>
 </div>
