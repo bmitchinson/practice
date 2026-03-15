@@ -230,7 +230,7 @@
 				duration: 0
 			}));
 		} else {
-			alert('Please select a valid audio file.');
+			alert('please select a valid audio file.');
 		}
 	}
 
@@ -341,6 +341,7 @@
 			activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA');
 
 		if (isAnyInputFocused) return;
+		if (event.metaKey || event.ctrlKey || event.altKey) return;
 
 		switch (event.key.toLowerCase()) {
 			case 's':
@@ -554,7 +555,7 @@
 				onclick={gotoLoopStart}
 				class="ml-1 rounded border px-2 py-1 text-xs disabled:opacity-50"
 				disabled={!audioState.isLoaded}
-				title="Press 's' to goto start"
+				title="press 's' to goto start"
 			>
 				goto (s)
 			</button>
@@ -608,7 +609,7 @@
 				onclick={gotoLoopEnd}
 				class="ml-1 rounded border px-2 py-1 text-xs disabled:opacity-50"
 				disabled={!audioState.isLoaded}
-				title="Press 'e' to goto end"
+				title="press 'e' to goto end"
 			>
 				goto (e)
 			</button>

@@ -17,14 +17,12 @@
 	function handleSave() {
 		const state = audioState;
 
-		if (!state.isLoaded) return;
-
 		const startTime = getLoopStartTime(state);
 		const endTime = getLoopEndTime(state);
 
-		// Validate that we have valid times
-		if (endTime <= startTime) {
-			alert('Loop end time must be greater than start time');
+		// Keep validation for edits, but allow creating sections without ordered loop times.
+		if (state.currentSectionId && endTime <= startTime) {
+			alert('loop end time must be greater than start time');
 			return;
 		}
 
@@ -61,66 +59,82 @@
 
 	let canSave = $derived(() => {
 		const state = audioState;
-		if (!state.isLoaded) return false;
-
 		const startTime = getLoopStartTime(state);
 		const endTime = getLoopEndTime(state);
 
-		return endTime > startTime && (state.currentSectionName.trim() || state.currentNote.trim());
+		if (state.currentSectionId) {
+			return endTime > startTime && (state.currentSectionName.trim() || state.currentNote.trim());
+		}
+
+		return Boolean(state.currentSectionName.trim() || state.currentNote.trim());
 	});
 
 	let isEditing = $derived(audioState.currentSectionId !== null);
+	let editingOrder = $derived.by(() => {
+		if (!audioState.currentSectionId) return null;
+
+		return (
+			audioState.savedSections.find((section) => section.id === audioState.currentSectionId)
+				?.order ?? null
+		);
+	});
 </script>
 
 <div class="space-y-4 rounded border p-4">
-	<h3 class="text-lg font-medium">
-		{isEditing ? 'Edit Section' : 'Section Notes'}
-	</h3>
+	<div>
+		<h3 class="text-lg font-medium">section editor</h3>
+		{#if editingOrder !== null}
+			<p class="text-sm opacity-70">editing #{editingOrder}</p>
+		{/if}
+	</div>
 
 	<!-- Section Name Input -->
 	<div>
-		<label for="section-name" class="mb-1 block text-sm">Section Name:</label>
+		<label for="section-name" class="mb-1 block text-sm">section name:</label>
 		<input
 			id="section-name"
 			type="text"
 			value={sectionName}
 			oninput={(e) => updateSectionName((e.target as HTMLInputElement).value)}
-			placeholder="Enter section name..."
+			placeholder="enter section name..."
 			class="w-full rounded border px-3 py-2"
-			disabled={!audioState.isLoaded}
 		/>
 	</div>
 
 	<!-- Note Textarea -->
 	<div>
-		<label for="note" class="mb-1 block text-sm">Note:</label>
+		<label for="note" class="mb-1 block text-sm">note:</label>
 		<textarea
 			id="note"
 			value={note}
 			oninput={(e) => updateNote((e.target as HTMLTextAreaElement).value)}
-			placeholder="Enter your notes about this section..."
+			placeholder="enter your notes about this section..."
 			rows="4"
 			class="w-full resize-none rounded border px-3 py-2"
-			disabled={!audioState.isLoaded}
 		></textarea>
 	</div>
 
 	<!-- Buttons -->
-	<div class="flex justify-between">
-		<button onclick={handleCancel} class="rounded border px-4 py-2" disabled={!audioState.isLoaded}>
-			New Section
-		</button>
-		<div class="flex gap-2">
-			{#if isEditing}
-				<button onclick={handleCancel} class="rounded border px-4 py-2"> Cancel </button>
-			{/if}
+	<div class="flex justify-end">
+		{#if isEditing}
+			<div class="flex gap-2">
+				<button onclick={handleCancel} class="rounded border px-4 py-2"> cancel </button>
+				<button
+					onclick={handleSave}
+					class="rounded border px-4 py-2 disabled:opacity-50"
+					disabled={!canSave}
+				>
+					update section
+				</button>
+			</div>
+		{:else}
 			<button
 				onclick={handleSave}
 				class="rounded border px-4 py-2 disabled:opacity-50"
 				disabled={!canSave}
 			>
-				{isEditing ? 'Update Section' : 'Save Section'}
+				new section
 			</button>
-		</div>
+		{/if}
 	</div>
 </div>

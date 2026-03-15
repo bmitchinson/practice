@@ -8,8 +8,8 @@
 </script>
 
 <svelte:head>
-	<title>Audio Player</title>
-	<meta name="description" content="Audio player application" />
+	<title>audio player</title>
+	<meta name="description" content="audio player application" />
 </svelte:head>
 
 <main class="min-h-screen overflow-x-hidden py-8">
@@ -38,7 +38,7 @@
 	<!-- NOTE: Leaving this commented on purpose, might add back later if I add a waveform visualization --
 	<!-- {#if selectedFile}
 		<div class="mx-auto mt-8 w-80 px-4">
-			<label for="width-slider" class="mb-2 block text-sm"> Zoom Level </label>
+			<label for="width-slider" class="mb-2 block text-sm"> zoom level </label>
 			<input
 				id="width-slider"
 				type="range"

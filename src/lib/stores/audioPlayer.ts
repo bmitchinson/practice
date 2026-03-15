@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 
 export interface SavedSection {
 	id: string;
+	order: number;
 	name: string;
 	note: string;
 	startTime: number;
@@ -89,6 +90,45 @@ export function getLoopEndTime(state: AudioPlayerState): number {
 	return minutes * 60 + seconds + ms / 1000;
 }
 
+export function normalizeSavedSections(sections: SavedSection[]): SavedSection[] {
+	return [...sections]
+		.sort((a, b) => {
+			const orderA = typeof a.order === 'number' ? a.order : Number.MAX_SAFE_INTEGER;
+			const orderB = typeof b.order === 'number' ? b.order : Number.MAX_SAFE_INTEGER;
+
+			if (orderA !== orderB) return orderA - orderB;
+			if (a.startTime !== b.startTime) return a.startTime - b.startTime;
+			return a.createdAt.getTime() - b.createdAt.getTime();
+		})
+		.map((section, index) => ({
+			...section,
+			order: index + 1
+		}));
+}
+
+export function reorderSavedSections(
+	sections: SavedSection[],
+	fromSectionId: string,
+	toSectionId: string
+): SavedSection[] {
+	const orderedSections = normalizeSavedSections(sections);
+	const fromIndex = orderedSections.findIndex((section) => section.id === fromSectionId);
+	const toIndex = orderedSections.findIndex((section) => section.id === toSectionId);
+
+	if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
+		return orderedSections;
+	}
+
+	const nextSections = [...orderedSections];
+	const [movedSection] = nextSections.splice(fromIndex, 1);
+	nextSections.splice(toIndex, 0, movedSection);
+
+	return nextSections.map((section, index) => ({
+		...section,
+		order: index + 1
+	}));
+}
+
 export function saveSection(
 	sectionName: string,
 	note: string,
@@ -98,16 +138,15 @@ export function saveSection(
 	audioPlayerStore.update((state) => {
 		const newSection: SavedSection = {
 			id: crypto.randomUUID(),
-			name: sectionName || `Section ${state.savedSections.length + 1}`,
+			order: state.savedSections.length + 1,
+			name: sectionName || `section ${state.savedSections.length + 1}`,
 			note,
 			startTime,
 			endTime,
 			createdAt: new Date()
 		};
 
-		const updatedSections = [...state.savedSections, newSection].sort(
-			(a, b) => a.startTime - b.startTime
-		);
+		const updatedSections = normalizeSavedSections([...state.savedSections, newSection]);
 
 		return {
 			...state,
@@ -151,12 +190,12 @@ export function updateSection(
 	endTime: number
 ): void {
 	audioPlayerStore.update((state) => {
-		const updatedSections = state.savedSections
-			.map((section) => {
+		const updatedSections = normalizeSavedSections(
+			state.savedSections.map((section) => {
 				if (section.id === sectionId) {
 					return {
 						...section,
-						name: sectionName || `Section ${state.savedSections.length + 1}`,
+						name: sectionName || `section ${state.savedSections.length + 1}`,
 						note,
 						startTime,
 						endTime
@@ -164,7 +203,7 @@ export function updateSection(
 				}
 				return section;
 			})
-			.sort((a, b) => a.startTime - b.startTime);
+		);
 
 		return {
 			...state,

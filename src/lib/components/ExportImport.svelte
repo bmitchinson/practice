@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { audioPlayerStore, type SavedSection } from '$lib/stores/audioPlayer';
+	import {
+		audioPlayerStore,
+		normalizeSavedSections,
+		type SavedSection
+	} from '$lib/stores/audioPlayer';
 
 	// Subscribe to store
 	let audioState = $derived($audioPlayerStore);
@@ -10,6 +14,7 @@
 			fileName: audioState.selectedFile?.name || 'unknown',
 			exportDate: new Date().toISOString(),
 			sections: audioState.savedSections.map((section) => ({
+				order: section.order,
 				name: section.name,
 				note: section.note,
 				startTime: section.startTime,
@@ -20,8 +25,8 @@
 	}
 
 	function exportSections() {
-		if (!audioState.selectedFile || audioState.savedSections.length === 0) {
-			alert('No audio file loaded or no sections to export');
+		if (audioState.savedSections.length === 0) {
+			alert('no sections to export');
 			return;
 		}
 
@@ -59,7 +64,7 @@
 		if (!file) return;
 
 		if (!file.name.endsWith('.practice.json')) {
-			alert('Please select a .practice.json file');
+			alert('please select a .practice.json file');
 			return;
 		}
 
@@ -78,7 +83,11 @@
 				const importedSections: SavedSection[] = importData.sections.map(
 					(section: any, index: number) => ({
 						id: crypto.randomUUID(),
-						name: section.name || `Imported Section ${index + 1}`,
+						order:
+							typeof section.order === 'number' && Number.isFinite(section.order)
+								? section.order
+								: index + 1,
+						name: section.name || `imported section ${index + 1}`,
 						note: section.note || '',
 						startTime: section.startTime || 0,
 						endTime: section.endTime || 0,
@@ -88,18 +97,21 @@
 
 				// Ask user for approval to overwrite existing sections
 				const shouldOverwrite = confirm(
-					`Import ${importedSections.length} sections?\n\n` +
-						`This will overwrite all existing sections. Click OK to proceed or Cancel to abort.`
+					`import ${importedSections.length} sections?\n\n` +
+						`this will overwrite all existing sections. click ok to proceed or cancel to abort.`
 				);
 
 				if (shouldOverwrite) {
 					audioPlayerStore.update((state) => ({
 						...state,
-						savedSections: importedSections.sort((a, b) => a.startTime - b.startTime)
+						savedSections: normalizeSavedSections(importedSections),
+						currentSectionName: '',
+						currentNote: '',
+						currentSectionId: null
 					}));
 				}
 			} catch (error) {
-				alert('Error importing file: Invalid format or corrupted file');
+				alert('error importing file: invalid format or corrupted file');
 				console.error('Import error:', error);
 			}
 		};
@@ -125,7 +137,7 @@
 		<button
 			onclick={exportSections}
 			class="flex-1 rounded border px-4 py-2 disabled:opacity-50"
-			disabled={!audioState.selectedFile || audioState.savedSections.length === 0}
+			disabled={audioState.savedSections.length === 0}
 		>
 			export
 		</button>
@@ -133,7 +145,7 @@
 		<button onclick={importSections} class="flex-1 rounded border px-4 py-2"> import </button>
 	</div>
 
-	{#if audioState.selectedFile && audioState.savedSections.length > 0}
+	{#if audioState.savedSections.length > 0}
 		<p class="mt-2 text-sm opacity-70">
 			{audioState.savedSections.length} section{audioState.savedSections.length !== 1 ? 's' : ''} ready
 			to export
