@@ -20,12 +20,6 @@
 		const startTime = getLoopStartTime(state);
 		const endTime = getLoopEndTime(state);
 
-		// Keep validation for edits, but allow creating sections without ordered loop times.
-		if (state.currentSectionId && endTime <= startTime) {
-			alert('loop end time must be greater than start time');
-			return;
-		}
-
 		// Check if we're editing an existing section
 		if (state.currentSectionId) {
 			updateSection(state.currentSectionId, sectionName, note, startTime, endTime);
@@ -59,13 +53,6 @@
 
 	let canSave = $derived(() => {
 		const state = audioState;
-		const startTime = getLoopStartTime(state);
-		const endTime = getLoopEndTime(state);
-
-		if (state.currentSectionId) {
-			return endTime > startTime && (state.currentSectionName.trim() || state.currentNote.trim());
-		}
-
 		return Boolean(state.currentSectionName.trim() || state.currentNote.trim());
 	});
 

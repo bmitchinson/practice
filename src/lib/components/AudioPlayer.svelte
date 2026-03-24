@@ -520,7 +520,6 @@
 				onblur={handleLoopBlur}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
-				disabled={!audioState.isLoaded}
 			/>
 			<span>:</span>
 			<input
@@ -531,7 +530,6 @@
 				onblur={handleLoopBlur}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
-				disabled={!audioState.isLoaded}
 			/>
 			<span>:</span>
 			<input
@@ -542,7 +540,6 @@
 				onblur={handleLoopBlur}
 				class="w-12 rounded border px-1 text-center"
 				maxlength="3"
-				disabled={!audioState.isLoaded}
 			/>
 			<button
 				onclick={setLoopStart}
@@ -574,7 +571,6 @@
 				onblur={handleLoopBlur}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
-				disabled={!audioState.isLoaded}
 			/>
 			<span>:</span>
 			<input
@@ -585,7 +581,6 @@
 				onblur={handleLoopBlur}
 				class="w-8 rounded border px-1 text-center"
 				maxlength="2"
-				disabled={!audioState.isLoaded}
 			/>
 			<span>:</span>
 			<input
@@ -596,7 +591,6 @@
 				onblur={handleLoopBlur}
 				class="w-12 rounded border px-1 text-center"
 				maxlength="3"
-				disabled={!audioState.isLoaded}
 			/>
 			<button
 				onclick={setLoopEnd}
