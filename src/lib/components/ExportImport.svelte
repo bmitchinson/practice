@@ -9,6 +9,10 @@
 	let audioState = $derived($audioPlayerStore);
 	let fileInput: HTMLInputElement;
 
+	function getPracticeExportTitle(fileName: string): string {
+		return fileName.replace(/\.practice\.json$/i, '') || 'song';
+	}
+
 	function getExportData() {
 		return {
 			fileName: audioState.selectedFile?.name || 'unknown',
@@ -42,7 +46,7 @@
 		link.href = url;
 
 		// Generate filename
-		link.download = 'song.practice.json';
+		link.download = `${audioState.exportTitle || 'song'}.practice.json`;
 
 		// Trigger download
 		document.body.appendChild(link);
@@ -67,6 +71,8 @@
 			alert('please select a .practice.json file');
 			return;
 		}
+
+		const exportTitle = getPracticeExportTitle(file.name);
 
 		const reader = new FileReader();
 		reader.onload = (e) => {
@@ -104,6 +110,7 @@
 				if (shouldOverwrite) {
 					audioPlayerStore.update((state) => ({
 						...state,
+						exportTitle,
 						savedSections: normalizeSavedSections(importedSections),
 						currentSectionName: '',
 						currentNote: '',

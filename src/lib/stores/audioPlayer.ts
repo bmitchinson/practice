@@ -38,6 +38,7 @@ export interface AudioPlayerState {
 	loopEndMilliseconds: string;
 
 	// Notes and sections
+	exportTitle: string;
 	currentSectionName: string;
 	currentNote: string;
 	currentSectionId: string | null;
@@ -67,6 +68,7 @@ const initialState: AudioPlayerState = {
 	loopEndSeconds: '00',
 	loopEndMilliseconds: '000',
 
+	exportTitle: 'song',
 	currentSectionName: '',
 	currentNote: '',
 	currentSectionId: null,
