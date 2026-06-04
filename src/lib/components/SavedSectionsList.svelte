@@ -126,7 +126,7 @@
 					</div>
 
 					{#if section.note}
-						<p class="line-clamp-2 text-sm opacity-80">{section.note}</p>
+						<p class="whitespace-pre-wrap text-sm opacity-80">{section.note}</p>
 					{/if}
 				</div>
 			{/each}
@@ -134,12 +134,3 @@
 	{/if}
 </div>
 
-<style>
-	.line-clamp-2 {
-		line-clamp: 2;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-</style>
