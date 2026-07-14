@@ -331,16 +331,26 @@
 		}
 	}
 
-	function updatePlaybackRate(event: Event) {
-		const target = event.target as HTMLInputElement;
-		const rate = parseFloat(target.value);
+	function setPlaybackRate(rate: number) {
+		const clampedRate = Math.max(0.25, Math.min(2, Math.round(rate * 100) / 100));
 
 		audioPlayerStore.update((state) => ({
 			...state,
-			playbackRate: rate
+			playbackRate: clampedRate
 		}));
 
-		handlePlaybackRateChange();
+		if (audioElement && audioState.isLoaded) {
+			audioElement.playbackRate = clampedRate;
+		}
+	}
+
+	function updatePlaybackRate(event: Event) {
+		const target = event.target as HTMLInputElement;
+		setPlaybackRate(parseFloat(target.value));
+	}
+
+	function nudgePlaybackRate(amount: number) {
+		setPlaybackRate(audioState.playbackRate + amount);
 	}
 
 	function updateLoopEnabled(event: Event) {
@@ -445,6 +455,14 @@
 	<div class="mb-4 flex justify-center">
 		<div class="flex items-center gap-2">
 			<label for="playback-rate" class="text-sm">speed:</label>
+			<button
+				onclick={() => nudgePlaybackRate(-0.05)}
+				class="rounded border px-2 py-1 disabled:opacity-50"
+				disabled={!audioState.isLoaded}
+				aria-label="slow down"
+			>
+				⬇️
+			</button>
 			<input
 				id="playback-rate"
 				type="range"
@@ -456,6 +474,14 @@
 				class="flex-1"
 				disabled={!audioState.isLoaded}
 			/>
+			<button
+				onclick={() => nudgePlaybackRate(0.05)}
+				class="rounded border px-2 py-1 disabled:opacity-50"
+				disabled={!audioState.isLoaded}
+				aria-label="speed up"
+			>
+				⬆️
+			</button>
 			<span class="w-12 text-sm">{audioState.playbackRate.toFixed(2)}x</span>
 		</div>
 	</div>
