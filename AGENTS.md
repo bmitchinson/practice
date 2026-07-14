@@ -37,6 +37,9 @@ Application-specific notes:
   - updating an existing section still validates that `loop end > loop start`
 - Section name and note editing must not be gated on audio load state.
 - Import/export of saved sections must not be gated on audio load state. Export should work with saved sections alone, even if no audio file is loaded.
+- Export/import payloads include `songTitle`; browser save/load should reuse the same JSON payload as file export/import and store it in browser storage. `save to browser` briefly changes to `✅` as confirmation.
 - Loading an audio file should not clear `currentSectionName`, `currentNote`, `currentSectionId`, or `savedSections`.
 - Remaining `isLoaded` gating inside `AudioPlayer.svelte` is intentional when it is strictly about actual audio playback or audio-only controls.
+- Audio file selection intentionally avoids `accept="audio/*"` because iOS Files can hide playable audio. Keep the picker broad and validate by audio MIME, known audio extensions, blank MIME, or no extension before letting the audio element fail if needed.
+- Playback speed has mobile-friendly emoji nudge buttons on either side of the slider.
 - The tuning section uses toggle buttons, not auto-stop timers. Clicking a note toggles it on/off, and active notes get an obvious light-blue pressed state.

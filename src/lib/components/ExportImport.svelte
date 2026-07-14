@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import {
 		audioPlayerStore,
 		normalizeSavedSections,
@@ -27,6 +28,8 @@
 
 	// Subscribe to store
 	let audioState = $derived($audioPlayerStore);
+	let browserSaveConfirmed = $state(false);
+	let browserSaveResetTimeout: ReturnType<typeof setTimeout> | null = null;
 	let fileInput: HTMLInputElement;
 
 	function getPracticeExportTitle(fileName: string): string {
@@ -197,6 +200,19 @@
 		target.value = '';
 	}
 
+	function showBrowserSaveConfirmation() {
+		browserSaveConfirmed = true;
+
+		if (browserSaveResetTimeout) {
+			clearTimeout(browserSaveResetTimeout);
+		}
+
+		browserSaveResetTimeout = setTimeout(() => {
+			browserSaveConfirmed = false;
+			browserSaveResetTimeout = null;
+		}, 900);
+	}
+
 	function saveSectionsToBrowser() {
 		const jsonString = getExportJsonString();
 
@@ -204,6 +220,7 @@
 
 		try {
 			localStorage.setItem(browserStorageKey, jsonString);
+			showBrowserSaveConfirmation();
 
 			const savedString = localStorage.getItem(browserStorageKey) ?? '';
 			if (savedString.length < jsonString.length) {
@@ -251,6 +268,12 @@
 			loadSectionsFromBrowser({ skipConfirm: true, showErrors: false });
 		}
 	});
+
+	onDestroy(() => {
+		if (browserSaveResetTimeout) {
+			clearTimeout(browserSaveResetTimeout);
+		}
+	});
 </script>
 
 <div class="rounded border p-4">
@@ -293,7 +316,11 @@
 			class="flex-1 rounded border px-4 py-2 disabled:opacity-50"
 			disabled={audioState.savedSections.length === 0}
 		>
-			save to browser
+			{#key browserSaveConfirmed}
+				<span class="inline-block min-w-28" transition:fade={{ duration: 180 }}>
+					{browserSaveConfirmed ? '✅' : 'save to browser'}
+				</span>
+			{/key}
 		</button>
 
 		<button onclick={() => loadSectionsFromBrowser()} class="flex-1 rounded border px-4 py-2">
