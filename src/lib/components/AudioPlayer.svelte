@@ -206,11 +206,25 @@
 		}
 	}
 
+	function isLikelyAudioFile(file: File): boolean {
+		const acceptedExtensions = ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'];
+		const lastDotIndex = file.name.lastIndexOf('.');
+		const hasExtension = lastDotIndex > 0 && lastDotIndex < file.name.length - 1;
+		const extension = hasExtension ? file.name.slice(lastDotIndex + 1).toLowerCase() : '';
+
+		return (
+			file.type.startsWith('audio/') ||
+			!file.type ||
+			!hasExtension ||
+			acceptedExtensions.includes(extension)
+		);
+	}
+
 	function handleFileSelect(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const file = target.files?.[0];
 
-		if (file && file.type.startsWith('audio/')) {
+		if (file && isLikelyAudioFile(file)) {
 			selectedFile = file;
 
 			// Clean up previous URL
@@ -252,6 +266,10 @@
 		}));
 		audioElement.preservesPitch = true;
 		audioElement.playbackRate = audioState.playbackRate;
+	}
+
+	function handleAudioError() {
+		alert('could not load audio file.');
 	}
 
 	function handleTimeUpdate() {
@@ -376,19 +394,14 @@
 
 <div class="audio-player border-theme mx-auto w-full rounded border p-6 text-center">
 	<!-- File Input (Hidden) -->
-	<input
-		bind:this={fileInput}
-		type="file"
-		accept="audio/*"
-		onchange={handleFileSelect}
-		class="hidden"
-	/>
+	<input bind:this={fileInput} type="file" onchange={handleFileSelect} class="hidden" />
 
 	<!-- File Selection Button -->
-	<div class="flex justify-center">
-		<button onclick={selectFile} class="border-theme mb-4 rounded border px-4 py-2">
+	<div class="mb-4 flex flex-col items-center gap-1">
+		<button onclick={selectFile} class="border-theme rounded border px-4 py-2">
 			select audio file
 		</button>
+		<p class="text-xs">mp3, m4a, wav, aac, ogg, flac</p>
 	</div>
 
 	<div class="border-theme mb-4 flex flex-col items-center rounded border p-3 text-center">
@@ -406,6 +419,7 @@
 			bind:this={audioElement}
 			src={audioState.audioUrl}
 			onloadedmetadata={handleLoadedMetadata}
+			onerror={handleAudioError}
 			ontimeupdate={handleTimeUpdate}
 			onplay={handlePlay}
 			onpause={handlePause}
