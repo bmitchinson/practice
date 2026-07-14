@@ -1,9 +1,29 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import {
 		audioPlayerStore,
 		normalizeSavedSections,
 		type SavedSection
 	} from '$lib/stores/audioPlayer';
+
+	const browserStorageKey = 'practice.sections.export';
+
+	interface PracticeExportSection {
+		order?: number;
+		name?: string;
+		note?: string;
+		startTime?: number;
+		endTime?: number;
+		createdAt?: string;
+	}
+
+	interface PracticeExportData {
+		fileName?: string;
+		exportDate?: string;
+		songTitle?: string;
+		exportTitle?: string;
+		sections?: PracticeExportSection[];
+	}
 
 	// Subscribe to store
 	let audioState = $derived($audioPlayerStore);
@@ -13,9 +33,22 @@
 		return fileName.replace(/\.practice\.json$/i, '') || 'song';
 	}
 
+	function getImportSongTitle(importData: PracticeExportData, fallbackTitle: string): string {
+		if (typeof importData.songTitle === 'string' && importData.songTitle.trim()) {
+			return importData.songTitle;
+		}
+
+		if (typeof importData.exportTitle === 'string' && importData.exportTitle.trim()) {
+			return importData.exportTitle;
+		}
+
+		return fallbackTitle;
+	}
+
 	function getExportData() {
 		return {
 			fileName: audioState.selectedFile?.name || 'unknown',
+			songTitle: audioState.exportTitle || 'song',
 			exportDate: new Date().toISOString(),
 			sections: audioState.savedSections.map((section) => ({
 				order: section.order,
@@ -28,14 +61,28 @@
 		};
 	}
 
-	function exportSections() {
+	function getExportJsonString(): string | null {
 		if (audioState.savedSections.length === 0) {
 			alert('no sections to export');
-			return;
+			return null;
 		}
 
-		const exportData = getExportData();
-		const jsonString = JSON.stringify(exportData, null, 2);
+		return JSON.stringify(getExportData(), null, 2);
+	}
+
+	function updateSongTitle(event: Event) {
+		const target = event.target as HTMLInputElement;
+
+		audioPlayerStore.update((state) => ({
+			...state,
+			exportTitle: target.value
+		}));
+	}
+
+	function exportSections() {
+		const jsonString = getExportJsonString();
+
+		if (!jsonString) return;
 
 		// Create blob and download
 		const blob = new Blob([jsonString], { type: 'application/json' });
@@ -61,6 +108,69 @@
 		fileInput.click();
 	}
 
+	function importSectionsFromJson(
+		content: string,
+		fallbackTitle: string,
+		options: {
+			action: string;
+			errorMessage: string;
+			skipConfirm?: boolean;
+			showErrors?: boolean;
+		}
+	): boolean {
+		const showErrors = options.showErrors ?? true;
+
+		try {
+			const importData = JSON.parse(content) as PracticeExportData;
+
+			// Validate structure
+			if (!importData.sections || !Array.isArray(importData.sections)) {
+				throw new Error('invalid file format');
+			}
+
+			// Convert sections back to proper format
+			const importedSections: SavedSection[] = importData.sections.map((section, index) => ({
+				id: crypto.randomUUID(),
+				order:
+					typeof section.order === 'number' && Number.isFinite(section.order)
+						? section.order
+						: index + 1,
+				name: section.name || `imported section ${index + 1}`,
+				note: section.note || '',
+				startTime: section.startTime || 0,
+				endTime: section.endTime || 0,
+				createdAt: section.createdAt ? new Date(section.createdAt) : new Date()
+			}));
+
+			// Ask user for approval to overwrite existing sections
+			const shouldOverwrite =
+				options.skipConfirm ||
+				confirm(
+					`${options.action} ${importedSections.length} sections?\n\n` +
+						`this will overwrite all existing sections. click ok to proceed or cancel to abort.`
+				);
+
+			if (shouldOverwrite) {
+				audioPlayerStore.update((state) => ({
+					...state,
+					exportTitle: getImportSongTitle(importData, fallbackTitle),
+					savedSections: normalizeSavedSections(importedSections),
+					currentSectionName: '',
+					currentNote: '',
+					currentSectionId: null
+				}));
+			}
+
+			return shouldOverwrite;
+		} catch (error) {
+			if (showErrors) {
+				alert(options.errorMessage);
+			}
+			console.error('import error:', error);
+			return false;
+		}
+	}
+
 	function handleFileImport(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const file = target.files?.[0];
@@ -72,55 +182,13 @@
 			return;
 		}
 
-		const exportTitle = getPracticeExportTitle(file.name);
-
 		const reader = new FileReader();
 		reader.onload = (e) => {
-			try {
-				const content = e.target?.result as string;
-				const importData = JSON.parse(content);
-
-				// Validate structure
-				if (!importData.sections || !Array.isArray(importData.sections)) {
-					throw new Error('Invalid file format');
-				}
-
-				// Convert sections back to proper format
-				const importedSections: SavedSection[] = importData.sections.map(
-					(section: any, index: number) => ({
-						id: crypto.randomUUID(),
-						order:
-							typeof section.order === 'number' && Number.isFinite(section.order)
-								? section.order
-								: index + 1,
-						name: section.name || `imported section ${index + 1}`,
-						note: section.note || '',
-						startTime: section.startTime || 0,
-						endTime: section.endTime || 0,
-						createdAt: section.createdAt ? new Date(section.createdAt) : new Date()
-					})
-				);
-
-				// Ask user for approval to overwrite existing sections
-				const shouldOverwrite = confirm(
-					`import ${importedSections.length} sections?\n\n` +
-						`this will overwrite all existing sections. click ok to proceed or cancel to abort.`
-				);
-
-				if (shouldOverwrite) {
-					audioPlayerStore.update((state) => ({
-						...state,
-						exportTitle,
-						savedSections: normalizeSavedSections(importedSections),
-						currentSectionName: '',
-						currentNote: '',
-						currentSectionId: null
-					}));
-				}
-			} catch (error) {
-				alert('error importing file: invalid format or corrupted file');
-				console.error('Import error:', error);
-			}
+			const content = e.target?.result as string;
+			importSectionsFromJson(content, getPracticeExportTitle(file.name), {
+				action: 'import',
+				errorMessage: 'error importing file: invalid format or corrupted file'
+			});
 		};
 
 		reader.readAsText(file);
@@ -128,6 +196,61 @@
 		// Clear input for next use
 		target.value = '';
 	}
+
+	function saveSectionsToBrowser() {
+		const jsonString = getExportJsonString();
+
+		if (!jsonString) return;
+
+		try {
+			localStorage.setItem(browserStorageKey, jsonString);
+
+			const savedString = localStorage.getItem(browserStorageKey) ?? '';
+			if (savedString.length < jsonString.length) {
+				alert(
+					'warning: browser save may be incomplete because it is smaller than the current export'
+				);
+			}
+		} catch (error) {
+			alert('error saving to browser storage');
+			console.error('browser save error:', error);
+		}
+	}
+
+	function loadSectionsFromBrowser(options: { skipConfirm?: boolean; showErrors?: boolean } = {}) {
+		const showErrors = options.showErrors ?? true;
+		let content: string | null;
+
+		try {
+			content = localStorage.getItem(browserStorageKey);
+		} catch (error) {
+			if (showErrors) {
+				alert('error loading browser save');
+			}
+			console.error('browser load error:', error);
+			return;
+		}
+
+		if (!content) {
+			if (showErrors) {
+				alert('no browser save found');
+			}
+			return;
+		}
+
+		importSectionsFromJson(content, 'song', {
+			action: 'load',
+			errorMessage: 'error loading browser save: invalid format or corrupted save',
+			skipConfirm: options.skipConfirm,
+			showErrors
+		});
+	}
+
+	onMount(() => {
+		if (audioState.savedSections.length === 0) {
+			loadSectionsFromBrowser({ skipConfirm: true, showErrors: false });
+		}
+	});
 </script>
 
 <div class="rounded border p-4">
@@ -140,6 +263,18 @@
 		class="hidden"
 	/>
 
+	<div class="mb-3">
+		<label for="song-title" class="mb-1 block text-sm">song title:</label>
+		<input
+			id="song-title"
+			type="text"
+			value={audioState.exportTitle}
+			oninput={updateSongTitle}
+			placeholder="song title"
+			class="w-full rounded border px-2 py-1"
+		/>
+	</div>
+
 	<div class="flex gap-2">
 		<button
 			onclick={exportSections}
@@ -150,6 +285,20 @@
 		</button>
 
 		<button onclick={importSections} class="flex-1 rounded border px-4 py-2"> import </button>
+	</div>
+
+	<div class="mt-2 flex gap-2">
+		<button
+			onclick={saveSectionsToBrowser}
+			class="flex-1 rounded border px-4 py-2 disabled:opacity-50"
+			disabled={audioState.savedSections.length === 0}
+		>
+			save to browser
+		</button>
+
+		<button onclick={() => loadSectionsFromBrowser()} class="flex-1 rounded border px-4 py-2">
+			load from browser
+		</button>
 	</div>
 
 	{#if audioState.savedSections.length > 0}
