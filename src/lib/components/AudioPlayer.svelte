@@ -7,6 +7,7 @@
 	let fileInput: HTMLInputElement;
 	let { selectedFile = $bindable(null) }: { selectedFile?: File | null } = $props();
 	let animationFrameId: number | null = null;
+	let volume = $state(1);
 
 	// Subscribe to store
 	let audioState = $derived($audioPlayerStore);
@@ -266,6 +267,7 @@
 		}));
 		audioElement.preservesPitch = true;
 		audioElement.playbackRate = audioState.playbackRate;
+		audioElement.volume = volume;
 	}
 
 	function handleAudioError() {
@@ -323,6 +325,15 @@
 
 	function selectFile() {
 		fileInput.click();
+	}
+
+	function updateVolume(event: Event) {
+		const target = event.target as HTMLInputElement;
+		volume = parseFloat(target.value);
+
+		if (audioElement && audioState.isLoaded) {
+			audioElement.volume = volume;
+		}
 	}
 
 	function handlePlaybackRateChange() {
@@ -449,6 +460,25 @@
 		>
 			{audioState.isPlaying ? 'pause' : 'play'}
 		</button>
+	</div>
+
+	<!-- Volume Control -->
+	<div class="mb-4 flex justify-center">
+		<div class="flex w-full max-w-md items-center gap-2">
+			<label for="volume" class="text-sm">volume:</label>
+			<input
+				id="volume"
+				type="range"
+				min="0"
+				max="1"
+				step="0.01"
+				value={volume}
+				oninput={updateVolume}
+				class="flex-1"
+				disabled={!audioState.isLoaded}
+			/>
+			<span class="w-10 text-sm">{Math.round(volume * 100)}%</span>
+		</div>
 	</div>
 
 	<!-- Playback Speed Control -->
